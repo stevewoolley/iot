@@ -73,7 +73,7 @@ class Publisher:
                 group_id, ca = self._caList[0]
                 core_info = self._coreList[0]
                 print("Discovered GGC: %s from Group: %s" % (core_info.coreThingArn, group_id))
-                if os.path.isfile(self._group_ca_path):
+                if not os.path.isfile(self._group_ca_path):
                     print("Now we persist the connectivity/identity information...")
                     group_ca_file = open(self._group_ca_path, "w")
                     group_ca_file.write(ca)
