@@ -3,6 +3,7 @@
 import argparse
 import json
 import awsiot
+import logging
 
 STATE = 'state'
 REPORTED = 'reported'
@@ -23,14 +24,18 @@ if __name__ == "__main__":
     parser.add_argument("-n", "--thingName", action="store", dest="thingName", default="Bot",
                         help="Targeted thing name")
     parser.add_argument("-t", "--topic", action="store", dest="topic", default="sdk/test/Python", help="Targeted topic")
+    parser.add_argument("-v", "--verbose", help="increase output verbosity", action="store_true")
     args = parser.parse_args()
 
     publisher = awsiot.Publisher(args.host, args.thingName, args.privateKeyPath, args.certificatePath, args.rootCAPath,
                                  args.groupCAPath)
+    if args.verbose:
+        logging.basicConfig(level=logging.DEBUG)
+        publisher.log_level = logging.DEBUG
 
     properties = dict([('foo', 'bar')])
     topic = THING_SHADOW.format(args.topic)
     payload = json.dumps({STATE: {REPORTED: properties}})
-    print("Attempt Publish {} to {}".format(payload, topic))
-    result = publisher.publish(topic, payload, 0)
-    print("Published {} to {} result: {}".format(payload, topic, result))
+    print("Publish {} to {}".format(payload, topic))
+    result = publisher.publish(topic, payload)
+    print("Published result: {}".format(result))

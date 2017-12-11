@@ -21,9 +21,8 @@ class Publisher:
         self._core_info = None
         self._connected = False
         self._discovered = False
+        self._log_level = logging.WARNING
         self._client = AWSIoTMQTTClient(thing_name)
-        self._caList = None
-        self._coreList = None
 
     @property
     def end_point(self):
@@ -34,29 +33,20 @@ class Publisher:
         return self._thing_name
 
     @property
-    def private_key_path(self):
-        return self._private_key_path
-
-    @property
-    def certificate_path(self):
-        return self._certificate_path
-
-    @property
-    def root_ca_path(self):
-        return self._root_ca_path
-
-    @property
-    def group_ca_path(self):
-
-        return self._group_ca_path
-
-    @property
     def connected(self):
         return self._connected
 
     @property
     def discovered(self):
         return self._discovered
+
+    @property
+    def log_level(self):
+        return self._log_level
+
+    @log_level.setter
+    def log_level(self, value):
+        self._log_level = value
 
     def discover(self):
         backoff_core = ProgressiveBackOffCore()
@@ -68,11 +58,11 @@ class Publisher:
         while retry_count != 0:
             try:
                 di = dip.discover(self._thing_name)
-                self._caList = di.getAllCas()
-                self._coreList = di.getAllCores()
+                ca_list = di.getAllCas()
+                core_list = di.getAllCores()
                 # We only pick the first ca and core info
-                group_id, ca = self._caList[0]
-                self._core_info = self._coreList[0]
+                group_id, ca = ca_list[0]
+                self._core_info = core_list[0]
                 logging.info("Discovered GGC: {} from Group: {}".format(self._core_info.coreThingArn, group_id))
                 if not os.path.isfile(self._group_ca_path):
                     group_ca_file = open(self._group_ca_path, "w")
@@ -91,8 +81,8 @@ class Publisher:
             raise RuntimeError("Discovery Failed")
 
     def connect(self):
-        # Iterate through all connection options for the core and use the first successful one
-        self._client.configureCredentials(self.group_ca_path, self.private_key_path, self.certificate_path)
+        # Iterate through all connection options for the greengrass core and use the first successful one
+        self._client.configureCredentials(self._group_ca_path, self._private_key_path, self._certificate_path)
         for connectivityInfo in self._core_info.connectivityInfoList:
             current_host = connectivityInfo.host
             current_port = connectivityInfo.port
@@ -100,6 +90,7 @@ class Publisher:
             self._client.configureEndpoint(current_host, current_port)
             self._client.connect()
             self._connected = True
+            break
 
     def publish(self, topic, payload, qos=0):
         if not self.discovered:
