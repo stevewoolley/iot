@@ -1,4 +1,5 @@
 import os
+import logging
 from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
 from AWSIoTPythonSDK.core.greengrass.discovery.providers import DiscoveryInfoProvider
 from AWSIoTPythonSDK.core.protocol.connection.cores import ProgressiveBackOffCore
@@ -72,31 +73,22 @@ class Publisher:
                 # We only pick the first ca and core info
                 group_id, ca = self._caList[0]
                 self._core_info = self._coreList[0]
-                print("Discovered GGC: %s from Group: %s" % (self._core_info.coreThingArn, group_id))
+                logging.info("Discovered GGC: {} from Group: {}".format(self._core_info.coreThingArn, group_id))
                 if not os.path.isfile(self._group_ca_path):
-                    print("Now we persist the connectivity/identity information...")
                     group_ca_file = open(self._group_ca_path, "w")
                     group_ca_file.write(ca)
                     group_ca_file.close()
                 self._discovered = True
-                print("Now proceed to the connecting flow...")
                 break
             except DiscoveryInvalidRequestException as e:
-                print("Invalid discovery request detected!")
-                print("Type: %s" % str(type(e)))
-                print("Error message: %s" % e.message)
-                print("Stopping...")
+                logging.error("Discovery Invalid Request: {}".format(e.message))
                 break
             except BaseException as e:
-                print("Error in discovery!")
-                print("Type: %s" % str(type(e)))
-                print("Error message: %s" % e.message)
                 retry_count -= 1
-                print("\n{}/{} retries left\n".format(retry_count, MAX_DISCOVERY_RETRIES))
-                print("Backing off...\n")
+                logging.info("Discovery Backoff...")
                 backoff_core.backOff()
         if not self._discovered:
-            raise RuntimeError("Discovery failed after {} retries".format(MAX_DISCOVERY_RETRIES))
+            raise RuntimeError("Discovery Failed")
 
     def connect(self):
         # Iterate through all connection options for the core and use the first successful one
@@ -104,7 +96,7 @@ class Publisher:
         for connectivityInfo in self._core_info.connectivityInfoList:
             current_host = connectivityInfo.host
             current_port = connectivityInfo.port
-            print("Trying to connect to core at {}:{}".format(current_host, current_port))
+            logging.info("Trying to connect to core at {}:{}".format(current_host, current_port))
             self._client.configureEndpoint(current_host, current_port)
             self._client.connect()
             self._connected = True
