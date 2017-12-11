@@ -17,7 +17,7 @@ class Publisher:
         self._group_ca_path = group_ca_path
         self._certificate_authority = None
         self._ca = None
-        self._coreInfo = None
+        self._core_info = None
         self._connected = False
         self._discovered = False
         self._client = AWSIoTMQTTClient(thing_name)
@@ -71,8 +71,8 @@ class Publisher:
                 self._coreList = di.getAllCores()
                 # We only pick the first ca and core info
                 group_id, ca = self._caList[0]
-                core_info = self._coreList[0]
-                print("Discovered GGC: %s from Group: %s" % (core_info.coreThingArn, group_id))
+                self._core_info = self._coreList[0]
+                print("Discovered GGC: %s from Group: %s" % (self._core_info.coreThingArn, group_id))
                 if not os.path.isfile(self._group_ca_path):
                     print("Now we persist the connectivity/identity information...")
                     group_ca_file = open(self._group_ca_path, "w")
@@ -101,7 +101,7 @@ class Publisher:
     def connect(self):
         # Iterate through all connection options for the core and use the first successful one
         self._client.configureCredentials(self.group_ca_path, self.private_key_path, self.certificate_path)
-        for connectivityInfo in self._coreInfo.connectivityInfoList:
+        for connectivityInfo in self._core_info.connectivityInfoList:
             current_host = connectivityInfo.host
             current_port = connectivityInfo.port
             print("Trying to connect to core at {}:{}".format(current_host, current_port))
