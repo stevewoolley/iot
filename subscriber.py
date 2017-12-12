@@ -25,7 +25,7 @@ if __name__ == "__main__":
     parser.add_argument("-g", "--groupCA", default=None, help="Group CA file path")
     parser.add_argument("-m", "--mqttHost", default=None, help="Targeted mqtt host")
 
-    parser.add_argument("-t", "--topic", default="/test", help="Targeted topic")
+    parser.add_argument("-t", "--topic", help="MQTT topic(s)", nargs='+', required=False)
     parser.add_argument("-v", "--verbose", help="increase output verbosity", action="store_true")
     args = parser.parse_args()
 
@@ -35,9 +35,10 @@ if __name__ == "__main__":
         logging.basicConfig(level=logging.DEBUG)
         subscriber.log_level = logging.DEBUG
 
-    logging.info("Subscribing to {}".format(args.topic))
-    subscriber.subscribe(args.topic, my_callback)
-    time.sleep(2)
+    for t in args.topic:
+        logging.info("Subscribing to {}".format(t))
+        subscriber.subscribe(t, my_callback)
+        time.sleep(2)  # pause
 
     # Loop forever
     try:
