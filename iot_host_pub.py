@@ -57,10 +57,7 @@ if __name__ == "__main__":
     properties = {}
     mem = psutil.virtual_memory()
     disk = psutil.disk_usage('/')
-    properties["ramAvailable"] = int(mem.available / (1024 * 1024))
-    properties["usedDiskSpaceRoot"] = int(disk.used / (1024 * 1024))
     properties["bootTime"] = datetime.datetime.fromtimestamp(psutil.boot_time()).strftime(DATE_FORMAT)
-    properties["cpuLoad"] = psutil.cpu_percent(interval=3)
     if platform.system() == 'Darwin':  # mac
         properties["release"] = platform.mac_ver()[0]
     elif platform.machine().startswith('arm') and platform.system() == 'Linux':  # raspberry pi
@@ -68,6 +65,9 @@ if __name__ == "__main__":
     properties["hostname"] = platform.node()
     properties["machine"] = platform.machine()
     properties["system"] = platform.system()
+    properties["totalDiskSpaceRoot"] = int(disk.total / (1024 * 1024))
+    properties["cpuProcessorCount"] = psutil.cpu_count()
+    properties["ramTotal"] = int(mem.total / (1024 * 1024))
 
     topic = THING_SHADOW.format(args.thingName)
     payload = json.dumps({STATE: {REPORTED: properties}})
