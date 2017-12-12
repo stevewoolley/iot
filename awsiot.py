@@ -115,6 +115,10 @@ class Publisher:
             self.connect()
         return self._client.publish(topic, payload, qos)
 
+    def close(self):
+        self._connected = False
+        self._client.disconnect()
+
 
 class Subscriber:
     def __init__(self):
