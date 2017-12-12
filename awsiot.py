@@ -9,7 +9,7 @@ MAX_DISCOVERY_RETRIES = 10
 
 
 class Publisher:
-    def __init__(self, end_point, thing_name, private_key_path, certificate_path, root_ca_path, group_ca_path):
+    def __init__(self, end_point, thing_name, private_key_path, certificate_path, root_ca_path, group_ca_path, mqtt_host=None, mqtt_port=8883):
         self._thing_name = thing_name
         self._end_point = end_point
         self._private_key_path = private_key_path
@@ -23,6 +23,8 @@ class Publisher:
         self._discovered = False
         self._log_level = logging.WARNING
         self._client = AWSIoTMQTTClient(thing_name)
+        self._mqtt_host = mqtt_host
+        self._mqtt_port = mqtt_port
 
     @property
     def end_point(self):
@@ -39,6 +41,14 @@ class Publisher:
     @property
     def discovered(self):
         return self._discovered
+
+    @property
+    def mqtt_host(self):
+        return self._mqtt_host
+
+    @property
+    def mqtt_port(self):
+        return self._mqtt_port
 
     @property
     def log_level(self):
@@ -83,17 +93,23 @@ class Publisher:
     def connect(self):
         # Iterate through all connection options for the greengrass core and use the first successful one
         self._client.configureCredentials(self._group_ca_path, self._private_key_path, self._certificate_path)
-        for connectivityInfo in self._core_info.connectivityInfoList:
-            current_host = connectivityInfo.host
-            current_port = connectivityInfo.port
-            logging.info("Trying to connect to core at {}:{}".format(current_host, current_port))
-            self._client.configureEndpoint(current_host, current_port)
+        if self._mqtt_host is not None:
+            self._client.configureEndpoint(self._mqtt_host, self.mqtt_port)
             self._client.connect()
-            self._connected = True
-            break
+        else:
+            for connectivityInfo in self._core_info.connectivityInfoList:
+                current_host = connectivityInfo.host
+                current_port = connectivityInfo.port
+                logging.info("Trying to connect to core at {}:{}".format(current_host, current_port))
+                self._client.configureEndpoint(current_host, current_port)
+                if self._client.connect():
+                    self._connected = True
+                    self._mqtt_host = current_host
+                    self._mqtt_port = current_port
+                    break
 
     def publish(self, topic, payload, qos=0):
-        if not self.discovered:
+        if self.mqtt_host is None and not self.discovered:
             self.discover()
         if not self.connected:
             self.connect()
