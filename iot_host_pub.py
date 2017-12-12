@@ -69,7 +69,7 @@ if __name__ == "__main__":
     properties["machine"] = platform.machine()
     properties["system"] = platform.system()
 
-    topic = THING_SHADOW.format(args.topic)
+    topic = THING_SHADOW.format(args.thingName)
     payload = json.dumps({STATE: {REPORTED: properties}})
     result = publisher.publish(topic, payload)
     publisher.close()
