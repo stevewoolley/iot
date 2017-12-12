@@ -21,14 +21,16 @@ if __name__ == "__main__":
                         help="Certificate file path")
     parser.add_argument("-k", "--key", action="store", required=True, dest="privateKeyPath",
                         help="Private key file path")
-    parser.add_argument("-n", "--thingName", action="store", dest="thingName", default="Bot",
+    parser.add_argument("-n", "--thingName", action="store", dest="thingName",
                         help="Targeted thing name")
+    parser.add_argument("-m", "--mqttHost", action="store", dest="mqttHost", default=None,
+                        help="Targeted mqtt host")
     parser.add_argument("-t", "--topic", action="store", dest="topic", default="sdk/test/Python", help="Targeted topic")
     parser.add_argument("-v", "--verbose", help="increase output verbosity", action="store_true")
     args = parser.parse_args()
 
     publisher = awsiot.Publisher(args.host, args.thingName, args.privateKeyPath, args.certificatePath, args.rootCAPath,
-                                 args.groupCAPath)
+                                 args.groupCAPath, args.mqttHost)
     if args.verbose:
         logging.basicConfig(level=logging.DEBUG)
         publisher.log_level = logging.DEBUG
