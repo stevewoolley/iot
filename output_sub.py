@@ -37,9 +37,9 @@ if __name__ == "__main__":
     parser.add_argument("-v", "--verbose", help="increase output verbosity", action="store_true")
 
     parser.add_argument("-p", "--pin", help="gpio pin (using BCM numbering)", type=int, required=True)
-    parser.add_argument("-n", "--blinks", help="Number of times to blink", type=int, default=1)
     parser.add_argument("-x", "--on_time", help="Number of seconds on", type=float, default=1)
     parser.add_argument("-y", "--off_time", help="Number of seconds off", type=float, default=1)
+    parser.add_argument("-z", "--blinks", help="Number of times to blink", type=int, default=1)
 
     args = parser.parse_args()
 
