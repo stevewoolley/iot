@@ -13,6 +13,7 @@ REPORTED = 'reported'
 DESIRED = 'desired'
 THING_SHADOW = "$aws/things/{}/shadow/update"
 DATE_FORMAT = '%Y/%m/%d %-I:%M %p %Z'
+NET_INTERFACES = ['en0', 'en1', 'en2', 'en3', 'wlan0', 'wlan1', 'eth0', 'eth1']
 
 
 def get_ip(i):
@@ -24,7 +25,7 @@ def get_ip(i):
                     return address
             return None
         except Exception as ex:
-            logging.info("get_ip {} {}".format(i, ex.message))
+            logging.info("iot_host_pub get_ip {} {}".format(i, ex.message))
             return None
     else:
         return None
@@ -32,24 +33,21 @@ def get_ip(i):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-e", "--endpoint", action="store", required=True, dest="host",
-                        help="Your AWS IoT custom endpoint")
-    parser.add_argument("-r", "--rootCA", action="store", required=True, dest="rootCAPath", help="Root CA file path")
-    parser.add_argument("-g", "--groupCA", action="store", default='groupCA.crt', dest="groupCAPath",
-                        help="Group CA file path")
-    parser.add_argument("-c", "--cert", action="store", required=True, dest="certificatePath",
-                        help="Certificate file path")
-    parser.add_argument("-k", "--key", action="store", required=True, dest="privateKeyPath",
-                        help="Private key file path")
-    parser.add_argument("-n", "--thingName", action="store", dest="thingName",
-                        help="Targeted thing name")
-    parser.add_argument("-m", "--mqttHost", action="store", dest="mqttHost", default=None,
-                        help="Targeted mqtt host")
+    parser.add_argument("-e", "--endpoint", required=True, help="Your AWS IoT custom endpoint")
+    parser.add_argument("-r", "--rootCA", required=True, help="Root CA file path")
+    parser.add_argument("-c", "--cert", required=True, help="Certificate file path")
+    parser.add_argument("-k", "--key", required=True, help="Private key file path")
+    parser.add_argument("-n", "--thing", help="Targeted thing name")
+
+    parser.add_argument("-g", "--groupCA", default=None, help="Group CA file path")
+    parser.add_argument("-m", "--mqttHost", default=None, help="Targeted mqtt host")
+
+    parser.add_argument("-t", "--topic", default="/test", help="Targeted topic")
     parser.add_argument("-v", "--verbose", help="increase output verbosity", action="store_true")
     args = parser.parse_args()
 
-    publisher = awsiot.Publisher(args.host, args.thingName, args.privateKeyPath, args.certificatePath, args.rootCAPath,
-                                 args.groupCAPath, args.mqttHost)
+    publisher = awsiot.Publisher(args.endpoint, args.rootCA, args.cert, args.key, args.thing, args.groupCA)
+
     if args.verbose:
         logging.basicConfig(level=logging.DEBUG)
         publisher.log_level = logging.DEBUG
@@ -57,7 +55,7 @@ if __name__ == "__main__":
     properties = {}
     mem = psutil.virtual_memory()
     disk = psutil.disk_usage('/')
-    properties["bootTime"] = datetime.datetime.fromtimestamp(psutil.boot_time()).strftime(DATE_FORMAT)
+    properties["bootTime"] = datetime.datetime.fromtimestamp(psutil.boot_time()).strftime(DATE_FORMAT).strip()
     if platform.system() == 'Darwin':  # mac
         properties["release"] = platform.mac_ver()[0]
     elif platform.machine().startswith('arm') and platform.system() == 'Linux':  # raspberry pi
@@ -68,8 +66,9 @@ if __name__ == "__main__":
     properties["totalDiskSpaceRoot"] = int(disk.total / (1024 * 1024))
     properties["cpuProcessorCount"] = psutil.cpu_count()
     properties["ramTotal"] = int(mem.total / (1024 * 1024))
+    for i in NET_INTERFACES:
+        properties["{}IpAddress".format(i)] = get_ip(i)
 
-    topic = THING_SHADOW.format(args.thingName)
+    topic = THING_SHADOW.format(args.thing)
     payload = json.dumps({STATE: {REPORTED: properties}})
     result = publisher.publish(topic, payload)
-    publisher.close()
