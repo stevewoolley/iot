@@ -61,7 +61,6 @@ venv.bak/
 /site
 .mypy_cache/
 /.idea/*
-*.yml
 *.crt
 *.pem
 *.key
