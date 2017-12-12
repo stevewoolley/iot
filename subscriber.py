@@ -4,9 +4,17 @@ import argparse
 import json
 import awsiot
 import logging
+import datetime
+import sys
+import time
+
+
+def my_callback(client, user_data, message):
+    msg = json.loads(message.payload)
+    print("{} {} {}".format(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), message.topic, msg))
+
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
     parser = argparse.ArgumentParser()
     parser.add_argument("-e", "--endpoint", required=True, help="Your AWS IoT custom endpoint")
     parser.add_argument("-r", "--rootCA", required=True, help="Root CA file path")
@@ -21,15 +29,19 @@ if __name__ == "__main__":
     parser.add_argument("-v", "--verbose", help="increase output verbosity", action="store_true")
     args = parser.parse_args()
 
-    publisher = awsiot.Publisher(args.endpoint, args.rootCA, args.cert, args.key)
+    subscriber = awsiot.Subscriber(args.endpoint, args.rootCA, args.cert, args.key)
 
     if args.verbose:
         logging.basicConfig(level=logging.DEBUG)
-        publisher.log_level = logging.DEBUG
+        subscriber.log_level = logging.DEBUG
 
-    message = {}
-    message['foo'] = 'bar'
-    messageJson = json.dumps(message)
-    logging.info("Publish {} to {}".format(messageJson, args.topic))
-    publisher.publish(args.topic, messageJson)
+    logging.info("Subscribing to {}".format(args.topic))
+    subscriber.subscribe(args.topic, my_callback)
+    time.sleep(2)
 
+    # Loop forever
+    try:
+        while True:
+            time.sleep(1)  # sleep needed because CPU race
+    except (KeyboardInterrupt, SystemExit):
+        sys.exit()
