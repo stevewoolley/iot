@@ -57,7 +57,7 @@ if __name__ == "__main__":
     subscriber.subscribe(args.topic, my_callback)
     time.sleep(2)  # pause
     logging.info("Subscribing to {}/#".format(args.topic))
-    subscriber.subscribe(args.topic + '/#', my_callback)
+    subscriber.subscribe("{}/#".format(args.topic), my_callback)
     time.sleep(2)  # pause
 
     # Loop forever
