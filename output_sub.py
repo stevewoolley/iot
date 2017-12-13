@@ -35,13 +35,13 @@ if __name__ == "__main__":
     parser.add_argument("-g", "--groupCA", default=None, help="Group CA file path")
     parser.add_argument("-m", "--mqttHost", default=None, help="Targeted mqtt host")
 
-    parser.add_argument("-t", "--topic", help="MQTT topic(s)", nargs='+', required=False)
+    parser.add_argument("-t", "--topic", help="MQTT topic(s)", required=False)
     parser.add_argument("-l", "--log_level", help="Log Level", default=logging.INFO)
 
     parser.add_argument("-p", "--pin", help="gpio pin (using BCM numbering)", type=int, required=True)
     parser.add_argument("-x", "--on_time", help="Number of seconds on", type=float, default=1)
     parser.add_argument("-y", "--off_time", help="Number of seconds off", type=float, default=1)
-    parser.add_argument("-z", "--pattern", help="Pattern 0=off, -1=on, 1..n=number of blinks", type=int, default=1)
+    parser.add_argument("-z", "--default", help="Pattern 0=off, -1=on, 1..n=number of blinks", type=int, default=1)
 
     args = parser.parse_args()
 
@@ -51,10 +51,12 @@ if __name__ == "__main__":
 
     output = DigitalOutputDevice(args.pin)
 
-    for t in args.topic:
-        logging.info("Subscribing to {}".format(t))
-        subscriber.subscribe(t, my_callback)
-        time.sleep(2)  # pause
+    logging.info("Subscribing to {}".format(args.topic))
+    subscriber.subscribe(args.topic, my_callback)
+    time.sleep(2)  # pause
+    logging.info("Subscribing to {}/#".format(args.topic))
+    subscriber.subscribe(args.topic + '/#', my_callback)
+    time.sleep(2)  # pause
 
     # Loop forever
     try:
