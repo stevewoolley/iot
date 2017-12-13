@@ -16,13 +16,13 @@ def my_callback(client, user_data, message):
     msg = json.loads(message.payload)
     logging.info(
         "output_sub {} {} {}".format(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), message.topic, msg))
-    output.blink()
-    # if args.pattern == 0:
-    #     output.off()
-    # elif args.pattern < 0:
-    #     output.on()
-    # else:
-    #     output.blink(args.on_time, args.off_time, args.pattern)
+    if message.topic == args.topic:
+        if args.default == 0:
+            output.off()
+        elif args.default < 0:
+            output.on()
+        else:
+            output.blink(args.on_time, args.off_time, args.default)
 
 
 if __name__ == "__main__":
