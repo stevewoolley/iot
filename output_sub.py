@@ -25,7 +25,7 @@ def my_callback(client, user_data, message):
             output.blink(args.on_time, args.off_time, args.default)
     if message.topic.replace(args.topic,'') in ['/1','/on']:
         output.on()
-    elif message.topic.replace(args.topic,'') in ['/1','/on']:
+    elif message.topic.replace(args.topic,'') in ['/0','/off']:
         output.off()
     elif message.topic.replace(args.topic,'') in ['/blink','/pulse']:
         output.blink(args.on_time, args.off_time, args.default)
