@@ -15,7 +15,7 @@ LOG_FILE = '/var/log/iot.log'
 def my_callback(client, user_data, message):
     msg = json.loads(message.payload)
     logging.info(
-        "output_sub {} {} {}".format(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), message.topic, msg))
+        "output_sub mqtt {} {} {}".format(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), message.topic, msg))
     if message.topic == args.topic:
         if args.default == 0:
             output.off()
@@ -59,10 +59,10 @@ if __name__ == "__main__":
 
     output = DigitalOutputDevice(args.pin)
 
-    logging.info("Subscribing to {}".format(args.topic))
+    logging.info("output_sub subscribing: {}".format(args.topic))
     subscriber.subscribe(args.topic, my_callback)
     time.sleep(2)  # pause
-    logging.info("Subscribing to {}/#".format(args.topic))
+    logging.info("output_sub subscribing: {}/#".format(args.topic))
     subscriber.subscribe("{}/#".format(args.topic), my_callback)
     time.sleep(2)  # pause
 

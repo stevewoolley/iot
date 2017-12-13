@@ -100,7 +100,7 @@ class Publisher:
     def connect(self):
         # use the presence of group_ca_path to determine if local or cloud
         if self._group_ca_path is None:
-            logging.info("Trying connect to AWS IoT: {}".format(self._end_point))
+            logging.info("publisher connect to AWS IoT: {}".format(self._end_point))
             self._client.configureCredentials(self._root_ca_path, self._private_key_path, self._certificate_path)
             self._client.configureEndpoint(self._end_point, 8883)
         else:
@@ -110,7 +110,6 @@ class Publisher:
                 for connectivityInfo in self._discoverer.core.connectivityInfoList:
                     current_host = connectivityInfo.host
                     current_port = connectivityInfo.port
-                    logging.info("Trying to connect to core at {}:{}".format(current_host, current_port))
                     self._client.configureEndpoint(current_host, current_port)
                     if self._client.connect():
                         self._mqtt_host = current_host
@@ -127,7 +126,6 @@ class Publisher:
         # payload needs to be in json
         if not self.connected:
             self.connect()
-        logging.info("Publishing {} to {}".format(payload, topic))
         self._client.publish(topic, payload, qos)
 
 
@@ -162,7 +160,7 @@ class Subscriber:
     def connect(self):
         # use the presence of group_ca_path to determine if local or cloud
         if self._group_ca_path is None:
-            logging.info("Trying connect to AWS IoT: {}".format(self._end_point))
+            logging.info("subscriber connect to AWS IoT: {}".format(self._end_point))
             self._client.configureCredentials(self._root_ca_path, self._private_key_path, self._certificate_path)
             self._client.configureEndpoint(self._end_point, 8883)
         else:
@@ -172,7 +170,6 @@ class Subscriber:
                 for connectivityInfo in self._discoverer.core.connectivityInfoList:
                     current_host = connectivityInfo.host
                     current_port = connectivityInfo.port
-                    logging.info("Trying to connect to core at {}:{}".format(current_host, current_port))
                     self._client.configureEndpoint(current_host, current_port)
                     if self._client.connect():
                         self._mqtt_host = current_host
@@ -182,8 +179,7 @@ class Subscriber:
                     raise RuntimeError("No hosts discovered")
             self._client.configureCredentials(self._group_ca_path, self._private_key_path, self._certificate_path)
             self._client.configureEndpoint(self._mqtt_host, self.mqtt_port)
-        result = self._client.connect()
-        logging.info("Connected result: {}".format(result))
+        self._client.connect()
         self._connected = True
 
     def subscribe(self, topic, callback, qos=1):
