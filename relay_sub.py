@@ -7,19 +7,17 @@ import logging
 import datetime
 import sys
 import time
-from gpiozero import DigitalOutputDevice
+from gpiozero import OutputDevice
 
 
 def my_callback(client, user_data, message):
     msg = json.loads(message.payload)
     logging.info(
-        "output_sub {} {} {}".format(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), message.topic, msg))
-    if args.pattern == 0:
+        "relay_sub {} {} {}".format(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), message.topic, msg))
+    if args.state == 0:
         output.off()
-    elif args.pattern < 0:
-        output.on()
     else:
-        output.blink(args.on_time, args.off_time, args.pattern)
+        output.on()
 
 
 if __name__ == "__main__":
@@ -37,13 +35,22 @@ if __name__ == "__main__":
     parser.add_argument("-v", "--verbose", help="increase output verbosity", action="store_true")
 
     parser.add_argument("-p", "--pin", help="gpio pin (using BCM numbering)", type=int, required=True)
-    parser.add_argument("-x", "--on_time", help="Number of seconds on", type=float, default=1)
-    parser.add_argument("-y", "--off_time", help="Number of seconds off", type=float, default=1)
-    parser.add_argument("-z", "--pattern", help="Pattern 0=off, -1=on, 1..n=number of blinks", type=int, default=1)
+    parser.add_argument("-s", "--state", help="Pattern 0=off, 1=on", type=int, required=True)
+    parser.add_argument("-a", "--active_high",
+                        help="If True (the default), the on() method will set the GPIO to HIGH. " +
+                             "If False, the on() method will set the GPIO to LOW " +
+                             "(the off() method always does the opposite).",
+                        type=bool, default=True)
+    parser.add_argument("-i", "--initial_value",
+                        help="If False (the default), the device will be off initially. " +
+                             "If None, the device will be left in whatever state the pin is found " +
+                             "in when configured for output (warning: this can be on). " +
+                             "If True, the device will be switched on initially.",
+                        type=bool, default=False)
 
     args = parser.parse_args()
 
-    output = DigitalOutputDevice(args.pin)
+    output = OutputDevice(args.pin, args.active_high, args.initial_value)
 
     subscriber = awsiot.Subscriber(args.endpoint, args.rootCA, args.cert, args.key)
 
