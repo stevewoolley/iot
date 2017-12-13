@@ -10,17 +10,11 @@ import time
 from gpiozero import OutputDevice
 
 
-def pulse():
-    output.off()
-    time.sleep(args.pulse_delay)
-    output.on()
-
-
 def my_callback(client, user_data, message):
     msg = json.loads(message.payload)
     logging.info(
-        "pulse_sub {} {} {}".format(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), message.topic, msg))
-    pulse()
+        "toggle_sub {} {} {}".format(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), message.topic, msg))
+    output.toggle()
 
 
 if __name__ == "__main__":
