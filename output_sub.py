@@ -16,12 +16,13 @@ def my_callback(client, user_data, message):
     msg = json.loads(message.payload)
     logging.info(
         "output_sub {} {} {}".format(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), message.topic, msg))
-    if args.pattern == 0:
-        output.off()
-    elif args.pattern < 0:
-        output.on()
-    else:
-        output.blink(args.on_time, args.off_time, args.pattern)
+    output.blink()
+    # if args.pattern == 0:
+    #     output.off()
+    # elif args.pattern < 0:
+    #     output.on()
+    # else:
+    #     output.blink(args.on_time, args.off_time, args.pattern)
 
 
 if __name__ == "__main__":
@@ -45,7 +46,9 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    logging.basicConfig(filename=LOG_FILE, level=args.log_level)
+    logging.basicConfig(filename=LOG_FILE, level=args.log_level,
+                        format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+                        datefmt='%m-%d %H:%M', )
 
     subscriber = awsiot.Subscriber(args.endpoint, args.rootCA, args.cert, args.key)
 
