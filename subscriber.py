@@ -11,7 +11,10 @@ import time
 LOG_FILE = '/var/log/iot.log'
 
 def my_callback(client, user_data, message):
-    msg = json.loads(message.payload)
+    try:
+        msg = json.loads(message.payload)
+    except ValueError:
+        msg = ""
     print("{} {} {}".format(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), message.topic, msg))
 
 

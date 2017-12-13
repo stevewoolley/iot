@@ -18,7 +18,10 @@ def pulse():
 
 
 def my_callback(client, user_data, message):
-    msg = json.loads(message.payload)
+    try:
+        msg = json.loads(message.payload)
+    except ValueError:
+        msg = ""
     logging.info(
         "relay_sub mqtt {} {}".format(message.topic, msg))
     if message.topic == args.topic:
