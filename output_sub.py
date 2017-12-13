@@ -47,8 +47,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     logging.basicConfig(filename=LOG_FILE, level=args.log_level,
-                        format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
-                        datefmt='%m-%d %H:%M', )
+                        format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
 
     subscriber = awsiot.Subscriber(args.endpoint, args.rootCA, args.cert, args.key)
 
