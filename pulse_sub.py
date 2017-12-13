@@ -9,6 +9,7 @@ import sys
 import time
 from gpiozero import OutputDevice
 
+LOG_FILE = '/var/log/iot.log'
 
 def pulse():
     output.off()
@@ -35,7 +36,7 @@ if __name__ == "__main__":
     parser.add_argument("-m", "--mqttHost", default=None, help="Targeted mqtt host")
 
     parser.add_argument("-t", "--topic", help="MQTT topic(s)", nargs='+', required=False)
-    parser.add_argument("-v", "--verbose", help="increase output verbosity", action="store_true")
+    parser.add_argument("-l", "--log_level", help="Log Level", default=logging.INFO)
 
     parser.add_argument("-p", "--pin", help="gpio pin (using BCM numbering)", type=int, required=True)
     parser.add_argument("-d", "--pulse_delay", help="length of pulse in seconds", type=float, default=0.5)
@@ -53,13 +54,11 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    logging.basicConfig(filename=LOG_FILE, level=args.log_level)
+
     output = OutputDevice(args.pin, args.active_high, args.initial_value)
 
     subscriber = awsiot.Subscriber(args.endpoint, args.rootCA, args.cert, args.key)
-
-    if args.verbose:
-        logging.basicConfig(level=logging.DEBUG)
-        subscriber.log_level = logging.DEBUG
 
     for t in args.topic:
         logging.info("Subscribing to {}".format(t))

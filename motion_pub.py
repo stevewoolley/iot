@@ -7,6 +7,7 @@ import logging
 from gpiozero import MotionSensor
 from signal import pause
 
+LOG_FILE = '/var/log/iot.log'
 
 def motion():
     logging.info("motion_pub: motion detected on pin: {}".format(args.pin))
@@ -34,7 +35,7 @@ if __name__ == "__main__":
     parser.add_argument("-m", "--mqttHost", default=None, help="Targeted mqtt host")
 
     parser.add_argument("-t", "--topic", help="MQTT topic(s)", nargs='+', required=False)
-    parser.add_argument("-v", "--verbose", help="increase output verbosity", action="store_true")
+    parser.add_argument("-l", "--log_level", help="Log Level", default=logging.INFO)
 
     parser.add_argument("-p", "--pin", help="gpio pin (using BCM numbering)", type=int, required=True)
     parser.add_argument("-q", "--queue_len",
@@ -48,11 +49,9 @@ if __name__ == "__main__":
                         type=float, default=0.5)
     args = parser.parse_args()
 
-    publisher = awsiot.Publisher(args.endpoint, args.rootCA, args.cert, args.key)
+    logging.basicConfig(filename=LOG_FILE, level=args.log_level)
 
-    if args.verbose:
-        logging.basicConfig(level=logging.DEBUG)
-        publisher.log_level = logging.DEBUG
+    publisher = awsiot.Publisher(args.endpoint, args.rootCA, args.cert, args.key)
 
     pir = MotionSensor(args.pin,
                        queue_len=args.queue_len,

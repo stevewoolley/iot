@@ -5,6 +5,8 @@ import json
 import awsiot
 import logging
 
+LOG_FILE = '/var/log/iot.log'
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser = argparse.ArgumentParser()
@@ -18,14 +20,12 @@ if __name__ == "__main__":
     parser.add_argument("-m", "--mqttHost", default=None, help="Targeted mqtt host")
 
     parser.add_argument("-t", "--topic", default="/test", help="Targeted topic")
-    parser.add_argument("-v", "--verbose", help="increase output verbosity", action="store_true")
+    parser.add_argument("-l", "--log_level", help="Log Level", default=logging.INFO)
     args = parser.parse_args()
 
     publisher = awsiot.Publisher(args.endpoint, args.rootCA, args.cert, args.key)
 
-    if args.verbose:
-        logging.basicConfig(level=logging.DEBUG)
-        publisher.log_level = logging.DEBUG
+    logging.basicConfig(filename=LOG_FILE, level=args.log_level)
 
     message = {}
     message['foo'] = 'bar'

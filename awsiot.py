@@ -6,6 +6,7 @@ from AWSIoTPythonSDK.core.protocol.connection.cores import ProgressiveBackOffCor
 from AWSIoTPythonSDK.exception.AWSIoTExceptions import DiscoveryInvalidRequestException
 
 MAX_DISCOVERY_RETRIES = 10
+LOG_FILE = '/var/log/iot.log'
 
 
 class Discoverer:
@@ -17,7 +18,6 @@ class Discoverer:
         self._group_ca_path = group_ca_path
         self._cores = None
         self._discovered = False
-        self._log_level = logging.WARNING
 
     @property
     def discovered(self):
@@ -26,14 +26,6 @@ class Discoverer:
     @property
     def cores(self):
         return self._cores
-
-    @property
-    def log_level(self):
-        return self._log_level
-
-    @log_level.setter
-    def log_level(self, value):
-        self._log_level = value
 
     @property
     def core(self):
@@ -87,7 +79,6 @@ class Publisher:
         self._root_ca_path = root_ca_path
         self._group_ca_path = group_ca_path
         self._connected = False
-        self._log_level = logging.WARNING
         self._client = AWSIoTMQTTClient(None)
         self._mqtt_host = mqtt_host
         self._mqtt_port = mqtt_port
@@ -105,14 +96,6 @@ class Publisher:
     @property
     def mqtt_port(self):
         return self._mqtt_port
-
-    @property
-    def log_level(self):
-        return self._log_level
-
-    @log_level.setter
-    def log_level(self, value):
-        self._log_level = value
 
     def connect(self):
         # use the presence of group_ca_path to determine if local or cloud
@@ -158,7 +141,6 @@ class Subscriber:
         self._thing_name = thing_name
         self._group_ca_path = group_ca_path
         self._connected = False
-        self._log_level = logging.WARNING
         self._client = AWSIoTMQTTClient(None)
         self._mqtt_host = mqtt_host
         self._mqtt_port = mqtt_port
@@ -176,14 +158,6 @@ class Subscriber:
     @property
     def mqtt_port(self):
         return self._mqtt_port
-
-    @property
-    def log_level(self):
-        return self._log_level
-
-    @log_level.setter
-    def log_level(self, value):
-        self._log_level = value
 
     def connect(self):
         # use the presence of group_ca_path to determine if local or cloud

@@ -8,6 +8,7 @@ import datetime
 import sys
 import time
 
+LOG_FILE = '/var/log/iot.log'
 
 def my_callback(client, user_data, message):
     msg = json.loads(message.payload)
@@ -26,14 +27,12 @@ if __name__ == "__main__":
     parser.add_argument("-m", "--mqttHost", default=None, help="Targeted mqtt host")
 
     parser.add_argument("-t", "--topic", help="MQTT topic(s)", nargs='+', required=False)
-    parser.add_argument("-v", "--verbose", help="increase output verbosity", action="store_true")
+    parser.add_argument("-l", "--log_level", help="Log Level", default=logging.INFO)
     args = parser.parse_args()
 
-    subscriber = awsiot.Subscriber(args.endpoint, args.rootCA, args.cert, args.key)
+    logging.basicConfig(filename=LOG_FILE, level=args.log_level)
 
-    if args.verbose:
-        logging.basicConfig(level=logging.DEBUG)
-        subscriber.log_level = logging.DEBUG
+    subscriber = awsiot.Subscriber(args.endpoint, args.rootCA, args.cert, args.key)
 
     for t in args.topic:
         logging.info("Subscribing to {}".format(t))
