@@ -9,22 +9,36 @@ from signal import pause
 
 def motion():
     logging.info("{} {} detected".format(args.source, args.pin))
-    message = {args.source: args.high_value}
-    if args.thing is not None:
-        publisher.publish(awsiot.iot_thing_topic(args.thing), awsiot.iot_payload(awsiot.REPORTED, message))
     if args.topic is not None:
-        message[awsiot.MESSAGE] = "{} {}".format(args.source, args.high_value)
-        publisher.publish(args.topic, json.dumps(message))
+        publisher.publish(args.topic,
+                          json.dumps(args.source,
+                                     {args.source: args.high_value,
+                                      awsiot.MESSAGE: "{} {}".format(args.source,
+                                                                     args.high_value)}
+                                     )
+                          )
+    if args.thing is not None:
+        publisher.publish(awsiot.iot_thing_topic(args.thing),
+                          awsiot.iot_payload(
+                              awsiot.REPORTED, {args.source: args.high_value})
+                          )
 
 
 def no_motion():
     logging.info("{} {} ended".format(args.source, args.pin))
-    message = {args.source: args.low_value}
-    if args.thing is not None:
-        publisher.publish(awsiot.iot_thing_topic(args.thing), awsiot.iot_payload(awsiot.REPORTED, message))
     if args.topic is not None:
-        message[awsiot.MESSAGE] = "{} {}".format(args.source, args.low_value)
-        publisher.publish(args.low_topic, json.dumps(message))
+        publisher.publish(args.topic,
+                          json.dumps(args.source,
+                                     {args.source: args.low_value,
+                                      awsiot.MESSAGE: "{} {}".format(args.source,
+                                                                     args.low_value)}
+                                     )
+                          )
+    if args.thing is not None:
+        publisher.publish(awsiot.iot_thing_topic(args.thing),
+                          awsiot.iot_payload(
+                              awsiot.REPORTED, {args.source: args.low_value})
+                          )
 
 
 if __name__ == "__main__":
