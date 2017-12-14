@@ -15,7 +15,7 @@ def pulse():
     output.on()
 
 
-def my_callback(client, user_data, message):
+def root_callback(client, user_data, message):
     try:
         msg = json.loads(message.payload)
     except ValueError:
@@ -28,6 +28,14 @@ def my_callback(client, user_data, message):
             pulse()
         else:
             output.on()
+
+
+def nested_callback(client, user_data, message):
+    try:
+        msg = json.loads(message.payload)
+    except ValueError:
+        msg = None
+    logging.info("received nested {} {}".format(message.topic, msg))
     if message.topic.replace(args.topic, '') in awsiot.TOPIC_STATUS_ON:
         output.on()
     elif message.topic.replace(args.topic, '') in awsiot.TOPIC_STATUS_OFF:
@@ -62,9 +70,9 @@ if __name__ == "__main__":
 
     subscriber = awsiot.Subscriber(args.endpoint, args.rootCA, args.cert, args.key, args.thing, args.groupCA)
 
-    subscriber.subscribe(args.topic, my_callback)
+    subscriber.subscribe(args.topic, root_callback)
     time.sleep(2)  # pause
-    subscriber.subscribe("{}/#".format(args.topic), my_callback)
+    subscriber.subscribe("{}/#".format(args.topic), nested_callback)
     time.sleep(2)  # pause
 
     # Loop forever
