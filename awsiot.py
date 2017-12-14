@@ -41,7 +41,7 @@ def iot_arg_parser():
     parser.add_argument("-n", "--thing", help="Targeted thing name")
     parser.add_argument("-g", "--groupCA", default=None, help="Group CA file path")
     parser.add_argument("-m", "--mqttHost", default=None, help="Targeted mqtt host")
-    parser.add_argument("-t", "--topic", help="MQTT topic(s)", required=False)
+    parser.add_argument("-t", "--topic", help="MQTT topic(s)", nargs='+', required=False)
     parser.add_argument("-l", "--log_level", help="Log Level", default=logging.INFO)
     return parser
 
