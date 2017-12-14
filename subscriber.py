@@ -17,16 +17,15 @@ def my_callback(client, user_data, message):
 
 
 if __name__ == "__main__":
-    parser = awsiot.iot_arg_parser()
+    parser = awsiot.iot_sub_arg_parser()
     args = parser.parse_args()
 
     logging.basicConfig(filename=awsiot.LOG_FILE, level=args.log_level, format=awsiot.LOG_FORMAT)
 
-    subscriber = awsiot.Subscriber(args.endpoint, args.rootCA, args.cert, args.key)
+    subscriber = awsiot.Subscriber(args.endpoint, args.rootCA, args.cert, args.key, args.thing, args.groupCA)
 
-    for t in args.topic:
-        subscriber.subscribe(t, my_callback)
-        time.sleep(2)  # pause
+    subscriber.subscribe(args.topic, my_callback)
+    time.sleep(2)  # pause
 
     # Loop forever
     try:

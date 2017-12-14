@@ -31,7 +31,7 @@ def no_motion():
 
 
 if __name__ == "__main__":
-    parser = awsiot.iot_arg_parser()
+    parser = awsiot.iot_pub_arg_parser()
     parser.add_argument("-p", "--pin", help="gpio pin (using BCM numbering)", type=int, required=True)
     parser.add_argument("-q", "--queue_len",
                         help="The length of the queue used to store values read from the sensor. (1 = disabled)",

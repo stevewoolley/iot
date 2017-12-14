@@ -30,7 +30,7 @@ def my_callback(client, user_data, message):
 
 
 if __name__ == "__main__":
-    parser = awsiot.iot_arg_parser()
+    parser = awsiot.iot_sub_arg_parser()
     parser.add_argument("-p", "--pin", help="gpio pin (using BCM numbering)", type=int, required=True)
     parser.add_argument("-x", "--on_time", help="Number of seconds on", type=float, default=1)
     parser.add_argument("-y", "--off_time", help="Number of seconds off", type=float, default=1)

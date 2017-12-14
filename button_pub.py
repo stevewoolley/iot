@@ -30,7 +30,7 @@ def released():
 
 
 if __name__ == "__main__":
-    parser = awsiot.iot_arg_parser()
+    parser = awsiot.iot_pub_arg_parser()
     parser.add_argument("-p", "--pin", help="gpio pin (using BCM numbering)", type=int, required=True)
     parser.add_argument("-u", "--pull_up",
                         help="If True (the default), the GPIO pin will be pulled high by default. " +

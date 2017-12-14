@@ -26,7 +26,7 @@ def get_ip(i):
 
 
 if __name__ == "__main__":
-    parser = awsiot.iot_arg_parser()
+    parser = awsiot.iot_pub_arg_parser()
     args = parser.parse_args()
 
     logging.basicConfig(filename=awsiot.LOG_FILE, level=args.log_level, format=awsiot.LOG_FORMAT)

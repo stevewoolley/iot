@@ -32,7 +32,7 @@ def iot_payload(target, doc):
     return json.dumps({STATE: {target: doc}})
 
 
-def iot_arg_parser():
+def iot_pub_arg_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument("-e", "--endpoint", required=True, help="Your AWS IoT custom endpoint")
     parser.add_argument("-r", "--rootCA", required=True, help="Root CA file path")
@@ -42,6 +42,20 @@ def iot_arg_parser():
     parser.add_argument("-g", "--groupCA", default=None, help="Group CA file path")
     parser.add_argument("-m", "--mqttHost", default=None, help="Targeted mqtt host")
     parser.add_argument("-t", "--topic", help="MQTT topic(s)", nargs='+', required=False)
+    parser.add_argument("-l", "--log_level", help="Log Level", default=logging.INFO)
+    return parser
+
+
+def iot_sub_arg_parser():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-e", "--endpoint", required=True, help="Your AWS IoT custom endpoint")
+    parser.add_argument("-r", "--rootCA", required=True, help="Root CA file path")
+    parser.add_argument("-c", "--cert", required=True, help="Certificate file path")
+    parser.add_argument("-k", "--key", required=True, help="Private key file path")
+    parser.add_argument("-n", "--thing", help="Targeted thing name")
+    parser.add_argument("-g", "--groupCA", default=None, help="Group CA file path")
+    parser.add_argument("-m", "--mqttHost", default=None, help="Targeted mqtt host")
+    parser.add_argument("-t", "--topic", help="MQTT topic(s)", required=False)
     parser.add_argument("-l", "--log_level", help="Log Level", default=logging.INFO)
     return parser
 
