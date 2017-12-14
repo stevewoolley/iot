@@ -7,6 +7,19 @@ from AWSIoTPythonSDK.exception.AWSIoTExceptions import DiscoveryInvalidRequestEx
 
 MAX_DISCOVERY_RETRIES = 10
 LOG_FILE = '/var/log/iot.log'
+STATE = 'state'
+REPORTED = 'reported'
+DESIRED = 'desired'
+THING_SHADOW = "$aws/things/{}/shadow/update"
+DATE_FORMAT = '%Y/%m/%d %-I:%M %p %Z'
+
+
+def iot_thing_topic(thing):
+    return THING_SHADOW.format(thing)
+
+
+def iot_payload(target, doc):
+    return {STATE: {target: doc}}
 
 
 class Discoverer:
@@ -73,10 +86,10 @@ class Publisher:
     def __init__(self, end_point, root_ca_path, certificate_path, private_key_path, thing_name=None, group_ca_path=None,
                  mqtt_host=None, mqtt_port=8883):
         self._end_point = end_point
-        self._thing_name = thing_name
-        self._private_key_path = private_key_path
-        self._certificate_path = certificate_path
         self._root_ca_path = root_ca_path
+        self._certificate_path = certificate_path
+        self._private_key_path = private_key_path
+        self._thing_name = thing_name
         self._group_ca_path = group_ca_path
         self._connected = False
         self._client = AWSIoTMQTTClient(None)

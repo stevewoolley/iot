@@ -12,22 +12,16 @@ LOG_FILE = '/var/log/iot.log'
 
 def pressed():
     logging.info("button_pub: button pressed on pin: {}".format(args.pin))
-    message = {args.source: args.high_value}
-    if args.topic is not None:
-        for t in args.topic:
-            publisher.publish(t, json.dumps(message))
-    if args.thing is not None:
-        publisher.publish(awsiot.iot_thing_topic(args.thing), awsiot.iot_payload(json.dumps(message)))
+    message_json = json.dumps({'button': True})
+    for t in args.topic:
+        publisher.publish(t, message_json)
 
 
 def released():
     logging.info("button_sub: button_released on pin: {}".format(args.pin))
-    message = {args.source: args.low_value}
-    if args.topic is not None:
-        for t in args.topic:
-            publisher.publish(t, json.dumps(message))
-    if args.thing is not None:
-        publisher.publish(awsiot.iot_thing_topic(args.thing), awsiot.iot_payload(json.dumps(message)))
+    message_json = json.dumps({'button': False})
+    for t in args.topic:
+        publisher.publish(t, message_json)
 
 
 if __name__ == "__main__":
@@ -56,19 +50,15 @@ if __name__ == "__main__":
                              "Otherwise, this is the length of time (in seconds) " +
                              "that the component will ignore changes in state after an initial change.",
                         type=float, default=None)
-    parser.add_argument("-s", "--source", help="Source", default="Sensor")
-    parser.add_argument("-y", "--high_value", help="high value", default="high")
-    parser.add_argument("-z", "--low_value", help="low value", default="low")
-
     args = parser.parse_args()
 
     logging.basicConfig(filename=LOG_FILE, level=args.log_level)
 
     publisher = awsiot.Publisher(args.endpoint, args.rootCA, args.cert, args.key)
 
-    pir = Button(args.pin, pull_up=args.pull_up, bounce_time=args.bounce_time)
+    input_device = Button(args.pin, pull_up=args.pull_up, bounce_time=args.bounce_time)
 
-    pir.when_pressed = pressed
-    pir.when_released = released
+    input_device.when_pressed = pressed
+    input_device.when_released = released
 
     pause()
