@@ -9,43 +9,46 @@ from signal import pause
 
 
 def motion():
-    logging.info("motion {} detected".format(args.pin))
-    message_json = json.dumps({'motion': True})
-    for t in args.topic:
-        publisher.publish(t, message_json)
+    logging.info("{} {} detected".format(args.source, args.pin))
+    message = {args.source: args.high_value}
+    if args.topic is not None:
+        message[awsiot.MESSAGE] = "{} {}".format(args.source, args.high_value)
+        for t in args.topic:
+            publisher.publish(t, json.dumps(args.source, message))
+    if args.thing is not None:
+        publisher.publish(awsiot.iot_thing_topic(args.thing), awsiot.iot_payload(awsiot.REPORTED, message))
 
 
 def no_motion():
-    logging.info("motion {} ended".format(args.pin))
-    message_json = json.dumps({'motion': False})
-    for t in args.topic:
-        publisher.publish(t, message_json)
+    logging.info("{} {} ended".format(args.source, args.pin))
+    message = {args.source: args.low_value}
+    if args.topic is not None:
+        message[awsiot.MESSAGE] = "{} {}".format(args.source, args.low_value)
+        for t in args.topic:
+            publisher.publish(t, json.dumps(args.source, message))
+    if args.thing is not None:
+        publisher.publish(awsiot.iot_thing_topic(args.thing), awsiot.iot_payload(awsiot.REPORTED, message))
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-e", "--endpoint", required=True, help="Your AWS IoT custom endpoint")
-    parser.add_argument("-r", "--rootCA", required=True, help="Root CA file path")
-    parser.add_argument("-c", "--cert", required=True, help="Certificate file path")
-    parser.add_argument("-k", "--key", required=True, help="Private key file path")
-    parser.add_argument("-n", "--thing", help="Targeted thing name")
-
-    parser.add_argument("-g", "--groupCA", default=None, help="Group CA file path")
-    parser.add_argument("-m", "--mqttHost", default=None, help="Targeted mqtt host")
-
-    parser.add_argument("-t", "--topic", help="MQTT topic(s)", nargs='+', required=False)
-    parser.add_argument("-l", "--log_level", help="Log Level", default=logging.INFO)
-
+    parser = awsiot.iot_arg_parser()
     parser.add_argument("-p", "--pin", help="gpio pin (using BCM numbering)", type=int, required=True)
     parser.add_argument("-q", "--queue_len",
                         help="The length of the queue used to store values read from the sensor. (1 = disabled)",
                         type=int, default=1)
-    parser.add_argument("-x", "--sample_rate",
-                        help="The number of values to read from the device (and append to the internal queue) per second",
+    parser.add_argument("-w", "--sample_rate",
+                        help="The number of values to read from the device " +
+                             "(and append to the internal queue) per second",
                         type=float, default=100)
-    parser.add_argument("-y", "--threshold",
-                        help="When the mean of all values in the internal queue rises above this value, the sensor will be considered active by the is_active property, and all appropriate events will be fired",
+    parser.add_argument("-x", "--threshold",
+                        help="When the mean of all values in the internal queue rises above this value, " +
+                             "the sensor will be considered active by the is_active property, " +
+                             "and all appropriate events will be fired",
                         type=float, default=0.5)
+    parser.add_argument("-s", "--source", help="Source", required=True)
+    parser.add_argument("-y", "--high_value", help="high value", default=1)
+    parser.add_argument("-z", "--low_value", help="low value", default=0)
     args = parser.parse_args()
 
     logging.basicConfig(filename=awsiot.LOG_FILE, level=args.log_level, format=awsiot.LOG_FORMAT)
