@@ -45,7 +45,8 @@ if __name__ == "__main__":
 
     subscriber.subscribe(args.topic, my_callback)
     time.sleep(2)  # pause
-    subscriber.subscribe("{}/#".format(args.topic), my_callback)
+    if len(args.topic) > 0:
+        subscriber.subscribe("{}/#".format(args.topic), my_callback)
     time.sleep(2)  # pause
 
     # Loop forever
