@@ -17,7 +17,7 @@ def pressed():
         for t in args.topic:
             publisher.publish(t, json.dumps(message))
     if args.thing is not None:
-        publisher.publish(awsiot.iot_thing_topic(args.thing), awsiot.iot_payload(awsiot.REPORTED, json.dumps(message)))
+        publisher.publish(awsiot.iot_thing_topic(args.thing), awsiot.iot_payload(awsiot.REPORTED, message))
 
 
 def released():
@@ -27,7 +27,7 @@ def released():
         for t in args.topic:
             publisher.publish(t, json.dumps(message))
     if args.thing is not None:
-        publisher.publish(awsiot.iot_thing_topic(args.thing), awsiot.iot_payload(awsiot.REPORTED, json.dumps(message)))
+        publisher.publish(awsiot.iot_thing_topic(args.thing), awsiot.iot_payload(awsiot.REPORTED, message))
 
 
 if __name__ == "__main__":

@@ -1,5 +1,6 @@
 import os
 import logging
+import json
 from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
 from AWSIoTPythonSDK.core.greengrass.discovery.providers import DiscoveryInfoProvider
 from AWSIoTPythonSDK.core.protocol.connection.cores import ProgressiveBackOffCore
@@ -19,7 +20,7 @@ def iot_thing_topic(thing):
 
 
 def iot_payload(target, doc):
-    return {STATE: {target: doc}}
+    return json.dumps({STATE: {target: doc}})
 
 
 class Discoverer:
