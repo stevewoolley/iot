@@ -8,7 +8,6 @@ import logging
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser = argparse.ArgumentParser()
     parser.add_argument("-e", "--endpoint", required=True, help="Your AWS IoT custom endpoint")
     parser.add_argument("-r", "--rootCA", required=True, help="Root CA file path")
     parser.add_argument("-c", "--cert", required=True, help="Certificate file path")

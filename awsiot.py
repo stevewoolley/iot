@@ -136,8 +136,8 @@ class Publisher:
 
     def connect(self):
         # use the presence of group_ca_path to determine if local or cloud
+        logging.info("publisher connect {}".format(self._end_point))
         if self._group_ca_path is None:
-            logging.info("publisher connect {}".format(self._end_point))
             self._client.configureCredentials(self._root_ca_path, self._private_key_path, self._certificate_path)
             self._client.configureEndpoint(self._end_point, 8883)
         else:
@@ -160,6 +160,7 @@ class Publisher:
         self._connected = True
 
     def publish(self, topic, payload, qos=1):
+        logging.info("publish {} {}".format(topic, payload))
         # payload needs to be in json
         if not self.connected:
             self.connect()
@@ -196,8 +197,8 @@ class Subscriber:
 
     def connect(self):
         # use the presence of group_ca_path to determine if local or cloud
+        logging.info("subscriber connect {}".format(self._end_point))
         if self._group_ca_path is None:
-            logging.info("subscriber connect {}".format(self._end_point))
             self._client.configureCredentials(self._root_ca_path, self._private_key_path, self._certificate_path)
             self._client.configureEndpoint(self._end_point, 8883)
         else:
