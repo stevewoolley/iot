@@ -81,14 +81,14 @@ class Discoverer:
         dip.configureTimeout(10)  # 10 sec
         retry_count = MAX_DISCOVERY_RETRIES
         while retry_count != 0:
-            logging.info("Discovery...")
+            logging.info("discovering")
             try:
                 di = dip.discover(thing)
                 ca_list = di.getAllCas()
                 self._cores = di.getAllCores()
                 # We only pick the first ca and core info
                 group_id, ca = ca_list[0]
-                logging.info("Discovered GGC: {} from Group: {}".format(self.core.coreThingArn, group_id))
+                logging.info("discovered {} from gg group: {}".format(self.core.coreThingArn, group_id))
                 if not os.path.isfile(self._group_ca_path):
                     group_ca_file = open(self._group_ca_path, "w")
                     group_ca_file.write(ca)
@@ -96,14 +96,14 @@ class Discoverer:
                 self._discovered = True
                 break
             except DiscoveryInvalidRequestException as e:
-                logging.error("Discovery Invalid Request: {}".format(e.message))
+                logging.error("discovery invalid request: {}".format(e.message))
                 break
             except BaseException as e:
                 retry_count -= 1
-                logging.info("Discovery Backoff...")
+                logging.info("discovery backoff...")
                 backoff_core.backOff()
         if not self._discovered:
-            raise RuntimeError("Discovery Failed")
+            raise RuntimeError("discovery failed")
 
 
 class Publisher:
@@ -137,7 +137,7 @@ class Publisher:
     def connect(self):
         # use the presence of group_ca_path to determine if local or cloud
         if self._group_ca_path is None:
-            logging.info("publisher connect to AWS IoT: {}".format(self._end_point))
+            logging.info("publisher connect {}".format(self._end_point))
             self._client.configureCredentials(self._root_ca_path, self._private_key_path, self._certificate_path)
             self._client.configureEndpoint(self._end_point, 8883)
         else:
@@ -197,7 +197,7 @@ class Subscriber:
     def connect(self):
         # use the presence of group_ca_path to determine if local or cloud
         if self._group_ca_path is None:
-            logging.info("subscriber connect to AWS IoT: {}".format(self._end_point))
+            logging.info("subscriber connect {}".format(self._end_point))
             self._client.configureCredentials(self._root_ca_path, self._private_key_path, self._certificate_path)
             self._client.configureEndpoint(self._end_point, 8883)
         else:
