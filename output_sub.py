@@ -4,7 +4,6 @@ import argparse
 import json
 import awsiot
 import logging
-import datetime
 import sys
 import time
 from gpiozero import DigitalOutputDevice
@@ -17,8 +16,7 @@ def my_callback(client, user_data, message):
         msg = json.loads(message.payload)
     except ValueError:
         msg = ""
-    logging.info(
-        "output_sub mqtt {} {} {}".format(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), message.topic, msg))
+    logging.info("received {} {}".format(message.topic, msg))
     if message.topic == args.topic:
         if args.default == 0:
             output.off()
@@ -26,11 +24,11 @@ def my_callback(client, user_data, message):
             output.on()
         else:
             output.blink(args.on_time, args.off_time, args.default)
-    if message.topic.replace(args.topic,'') in ['/1','/on']:
+    if message.topic.replace(args.topic, '') in ['/1', '/on']:
         output.on()
-    elif message.topic.replace(args.topic,'') in ['/0','/off']:
+    elif message.topic.replace(args.topic, '') in ['/0', '/off']:
         output.off()
-    elif message.topic.replace(args.topic,'') in ['/blink','/pulse']:
+    elif message.topic.replace(args.topic, '') in ['/blink', '/pulse']:
         output.blink(args.on_time, args.off_time, args.default)
 
 
@@ -55,17 +53,18 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    logging.basicConfig(filename=LOG_FILE, level=args.log_level,
-                        format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
+    logging.basicConfig(filename=LOG_FILE,
+                        level=args.log_level,
+                        format='%(asctime)s %(filename)-15s %(funcName)-15s %(levelname)-8s %(message)s')
 
     subscriber = awsiot.Subscriber(args.endpoint, args.rootCA, args.cert, args.key)
 
     output = DigitalOutputDevice(args.pin)
 
-    logging.info("output_sub subscribing: {}".format(args.topic))
+    logging.info("subscribing {}".format(args.topic))
     subscriber.subscribe(args.topic, my_callback)
     time.sleep(2)  # pause
-    logging.info("output_sub subscribing: {}/#".format(args.topic))
+    logging.info("subscribing {}/#".format(args.topic))
     subscriber.subscribe("{}/#".format(args.topic), my_callback)
     time.sleep(2)  # pause
 
