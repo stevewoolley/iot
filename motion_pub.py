@@ -31,7 +31,6 @@ def no_motion():
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
     parser = awsiot.iot_arg_parser()
     parser.add_argument("-p", "--pin", help="gpio pin (using BCM numbering)", type=int, required=True)
     parser.add_argument("-q", "--queue_len",
@@ -53,7 +52,7 @@ if __name__ == "__main__":
 
     logging.basicConfig(filename=awsiot.LOG_FILE, level=args.log_level, format=awsiot.LOG_FORMAT)
 
-    publisher = awsiot.Publisher(args.endpoint, args.rootCA, args.cert, args.key)
+    publisher = awsiot.Publisher(args.endpoint, args.rootCA, args.cert, args.key, args.thing, args.groupCA)
 
     pir = MotionSensor(args.pin,
                        queue_len=args.queue_len,

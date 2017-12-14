@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import argparse
 import json
 import awsiot
 import logging
@@ -52,11 +51,11 @@ if __name__ == "__main__":
 
     logging.basicConfig(filename=awsiot.LOG_FILE, level=args.log_level, format=awsiot.LOG_FORMAT)
 
-    publisher = awsiot.Publisher(args.endpoint, args.rootCA, args.cert, args.key)
+    publisher = awsiot.Publisher(args.endpoint, args.rootCA, args.cert, args.key, args.thing, args.groupCA)
 
-    pir = Button(args.pin, pull_up=args.pull_up, bounce_time=args.bounce_time)
+    button = Button(args.pin, pull_up=args.pull_up, bounce_time=args.bounce_time)
 
-    pir.when_pressed = pressed
-    pir.when_released = released
+    button.when_pressed = pressed
+    button.when_released = released
 
     pause()

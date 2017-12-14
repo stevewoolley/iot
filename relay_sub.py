@@ -8,8 +8,6 @@ import sys
 import time
 from gpiozero import OutputDevice
 
-LOG_FILE = '/var/log/iot.log'
-
 
 def pulse():
     output.off()
@@ -22,8 +20,7 @@ def my_callback(client, user_data, message):
         msg = json.loads(message.payload)
     except ValueError:
         msg = None
-    logging.info(
-        "received {} {}".format(message.topic, msg))
+    logging.info("received {} {}".format(message.topic, msg))
     if message.topic == args.topic:
         if args.default == 0:
             output.off()
@@ -42,22 +39,9 @@ def my_callback(client, user_data, message):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-e", "--endpoint", required=True, help="Your AWS IoT custom endpoint")
-    parser.add_argument("-r", "--rootCA", required=True, help="Root CA file path")
-    parser.add_argument("-c", "--cert", required=True, help="Certificate file path")
-    parser.add_argument("-k", "--key", required=True, help="Private key file path")
-    parser.add_argument("-n", "--thing", help="Targeted thing name")
-
-    parser.add_argument("-g", "--groupCA", default=None, help="Group CA file path")
-    parser.add_argument("-m", "--mqttHost", default=None, help="Targeted mqtt host")
-
-    parser.add_argument("-t", "--topic", help="MQTT topic(s)", required=False)
-    parser.add_argument("-l", "--log_level", help="Log Level", default=logging.INFO)
-
+    parser = awsiot.iot_arg_parser()
     parser.add_argument("-p", "--pin", help="gpio pin (using BCM numbering)", type=int, required=True)
     parser.add_argument("-d", "--pulse_delay", help="length of pulse in seconds", type=float, default=0.5)
-    parser.add_argument("-z", "--default", help="Pattern 0=off, 1=on, 1=pulse", type=int, default=1)
     parser.add_argument("-a", "--active_high",
                         help="If True (the default), the on() method will set the GPIO to HIGH. " +
                              "If False, the on() method will set the GPIO to LOW " +
@@ -69,19 +53,17 @@ if __name__ == "__main__":
                              "in when configured for output (warning: this can be on). " +
                              "If True, the device will be switched on initially.",
                         type=bool, default=False)
-
+    parser.add_argument("-z", "--default", help="Pattern 0=off, 1=on, 1=pulse", type=int, default=1)
     args = parser.parse_args()
 
     logging.basicConfig(filename=awsiot.LOG_FILE, level=args.log_level, format=awsiot.LOG_FORMAT)
 
     output = OutputDevice(args.pin, args.active_high, args.initial_value)
 
-    subscriber = awsiot.Subscriber(args.endpoint, args.rootCA, args.cert, args.key)
+    subscriber = awsiot.Subscriber(args.endpoint, args.rootCA, args.cert, args.key, args.thing, args.groupCA)
 
-    logging.info("subscribe {}".format(args.topic))
     subscriber.subscribe(args.topic, my_callback)
     time.sleep(2)  # pause
-    logging.info("subscribe {}/#".format(args.topic))
     subscriber.subscribe("{}/#".format(args.topic), my_callback)
     time.sleep(2)  # pause
 

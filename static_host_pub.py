@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import argparse
 import json
 import awsiot
 import logging
@@ -20,25 +19,14 @@ def get_ip(i):
                     return address
             return None
         except Exception as ex:
-            logging.info("iot_host_pub get_ip {} {}".format(i, ex.message))
+            logging.info("get_ip {} {}".format(i, ex.message))
             return None
     else:
         return None
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-e", "--endpoint", required=True, help="Your AWS IoT custom endpoint")
-    parser.add_argument("-r", "--rootCA", required=True, help="Root CA file path")
-    parser.add_argument("-c", "--cert", required=True, help="Certificate file path")
-    parser.add_argument("-k", "--key", required=True, help="Private key file path")
-    parser.add_argument("-n", "--thing", help="Targeted thing name")
-
-    parser.add_argument("-g", "--groupCA", default=None, help="Group CA file path")
-    parser.add_argument("-m", "--mqttHost", default=None, help="Targeted mqtt host")
-
-    parser.add_argument("-t", "--topic", default="/test", help="Targeted topic")
-    parser.add_argument("-l", "--log_level", help="Log Level", default=logging.INFO)
+    parser = awsiot.iot_arg_parser()
     args = parser.parse_args()
 
     logging.basicConfig(filename=awsiot.LOG_FILE, level=args.log_level, format=awsiot.LOG_FORMAT)
@@ -62,6 +50,6 @@ if __name__ == "__main__":
     for iface in NET_INTERFACES:
         properties["{}IpAddress".format(iface)] = get_ip(iface)
 
-    topic = awsiot.THING_SHADOW.format(args.thing)
+    t = awsiot.THING_SHADOW.format(args.thing)
     payload = json.dumps({awsiot.STATE: {awsiot.REPORTED: properties}})
-    result = publisher.publish(topic, payload)
+    result = publisher.publish(t, payload)
