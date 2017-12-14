@@ -19,7 +19,7 @@ def motion():
         if args.topic is not None:
             message[awsiot.MESSAGE] = "{} {}".format(args.source, args.high_value)
             for t in args.topic:
-                publisher.publish(t, json.dumps(args.source, message))
+                publisher.publish(t, json.dumps(message))
         if args.thing is not None:
             publisher.publish(awsiot.iot_thing_topic(args.thing), awsiot.iot_payload(awsiot.REPORTED, message))
 
@@ -33,7 +33,7 @@ def no_motion():
         if args.topic is not None:
             message[awsiot.MESSAGE] = "{} {}".format(args.source, args.low_value)
             for t in args.topic:
-                publisher.publish(t, json.dumps(args.source, message))
+                publisher.publish(t, json.dumps(message))
         if args.thing is not None:
             publisher.publish(awsiot.iot_thing_topic(args.thing), awsiot.iot_payload(awsiot.REPORTED, message))
 
@@ -58,7 +58,6 @@ if __name__ == "__main__":
     parser.add_argument("-y", "--high_value", help="high value", default=1)
     parser.add_argument("-z", "--low_value", help="low value", default=0)
     args = parser.parse_args()
-    moving = False
 
     logging.basicConfig(filename=awsiot.LOG_FILE, level=args.log_level, format=awsiot.LOG_FORMAT)
 
