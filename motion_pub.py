@@ -7,17 +7,16 @@ import logging
 from gpiozero import MotionSensor
 from signal import pause
 
-LOG_FILE = '/var/log/iot.log'
 
 def motion():
-    logging.info("motion_pub: motion detected on pin: {}".format(args.pin))
+    logging.info("motion {} detected".format(args.pin))
     message_json = json.dumps({'motion': True})
     for t in args.topic:
         publisher.publish(t, message_json)
 
 
 def no_motion():
-    logging.info("motion_sub: no motion detected on pin: {}".format(args.pin))
+    logging.info("motion {} ended".format(args.pin))
     message_json = json.dumps({'motion': False})
     for t in args.topic:
         publisher.publish(t, message_json)
@@ -49,8 +48,7 @@ if __name__ == "__main__":
                         type=float, default=0.5)
     args = parser.parse_args()
 
-    logging.basicConfig(filename=LOG_FILE, level=args.log_level,
-                        format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
+    logging.basicConfig(filename=awsiot.LOG_FILE, level=args.log_level, format=awsiot.LOG_FORMAT)
 
     publisher = awsiot.Publisher(args.endpoint, args.rootCA, args.cert, args.key)
 

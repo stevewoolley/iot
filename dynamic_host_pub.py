@@ -8,13 +8,6 @@ import platform
 import psutil
 import subprocess as sp
 
-STATE = 'state'
-REPORTED = 'reported'
-DESIRED = 'desired'
-THING_SHADOW = "$aws/things/{}/shadow/update"
-DATE_FORMAT = '%Y/%m/%d %-I:%M %p %Z'
-LOG_FILE = '/var/log/iot.log'
-
 
 def os_execute(s):
     """Returns string result of os call"""
@@ -46,8 +39,7 @@ if __name__ == "__main__":
     parser.add_argument("-l", "--log_level", help="Log Level", default=logging.INFO)
     args = parser.parse_args()
 
-    logging.basicConfig(filename=LOG_FILE, level=args.log_level,
-                        format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
+    logging.basicConfig(filename=awsiot.LOG_FILE, level=args.log_level, format=awsiot.LOG_FORMAT)
 
     publisher = awsiot.Publisher(args.endpoint, args.rootCA, args.cert, args.key, args.thing, args.groupCA)
 
@@ -60,6 +52,6 @@ if __name__ == "__main__":
     properties["usedDiskSpaceRoot"] = int(disk.used / (1024 * 1024))
     properties["cpuLoad"] = psutil.cpu_percent(interval=3)
 
-    topic = THING_SHADOW.format(args.thing)
-    payload = json.dumps({STATE: {REPORTED: properties}})
+    topic = awsiot.THING_SHADOW.format(args.thing)
+    payload = json.dumps({awsiot.STATE: {awsiot.REPORTED: properties}})
     result = publisher.publish(topic, payload)

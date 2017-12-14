@@ -23,7 +23,7 @@ def my_callback(client, user_data, message):
     except ValueError:
         msg = ""
     logging.info(
-        "relay_sub mqtt {} {}".format(message.topic, msg))
+        "received {} {}".format(message.topic, msg))
     if message.topic == args.topic:
         if args.default == 0:
             output.off()
@@ -72,17 +72,16 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    logging.basicConfig(filename=LOG_FILE, level=args.log_level,
-                        format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
+    logging.basicConfig(filename=awsiot.LOG_FILE, level=args.log_level, format=awsiot.LOG_FORMAT)
 
     output = OutputDevice(args.pin, args.active_high, args.initial_value)
 
     subscriber = awsiot.Subscriber(args.endpoint, args.rootCA, args.cert, args.key)
 
-    logging.info("relay_sub subscribing: {}".format(args.topic))
+    logging.info("subscribe {}".format(args.topic))
     subscriber.subscribe(args.topic, my_callback)
     time.sleep(2)  # pause
-    logging.info("relay_sub subscribing: {}/#".format(args.topic))
+    logging.info("subscribe {}/#".format(args.topic))
     subscriber.subscribe("{}/#".format(args.topic), my_callback)
     time.sleep(2)  # pause
 

@@ -13,7 +13,9 @@ REPORTED = 'reported'
 DESIRED = 'desired'
 THING_SHADOW = "$aws/things/{}/shadow/update"
 DATE_FORMAT = '%Y/%m/%d %-I:%M %p %Z'
-LOG_FORMAT = '%(asctime)s %(filename)-15s %(lineno)-15s %(levelname)-8s %(message)s'
+LOG_FORMAT = '%(asctime)s %(filename)-15s %(funcName)-15s %(levelname)-8s %(message)s'
+LOG_FILE = '/var/log/iot.log'
+DATE_FORMAT = '%Y/%m/%d %-I:%M %p %Z'
 
 def iot_thing_topic(thing):
     return THING_SHADOW.format(thing)

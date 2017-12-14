@@ -7,8 +7,6 @@ import logging
 from gpiozero import Button
 from signal import pause
 
-LOG_FILE = '/var/log/iot.log'
-
 
 def pressed():
     logging.info("button_pub: button pressed on pin: {}".format(args.pin))
@@ -52,8 +50,7 @@ if __name__ == "__main__":
                         type=float, default=None)
     args = parser.parse_args()
 
-    logging.basicConfig(filename=LOG_FILE, level=args.log_level,
-                        format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
+    logging.basicConfig(filename=awsiot.LOG_FILE, level=args.log_level, format=awsiot.LOG_FORMAT)
 
     publisher = awsiot.Publisher(args.endpoint, args.rootCA, args.cert, args.key)
 

@@ -4,18 +4,16 @@ import argparse
 import json
 import awsiot
 import logging
-import datetime
 import sys
 import time
 
-LOG_FILE = '/var/log/iot.log'
 
 def my_callback(client, user_data, message):
     try:
         msg = json.loads(message.payload)
     except ValueError:
         msg = ""
-    print("{} {} {}".format(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), message.topic, msg))
+    logging.info("received {} {}".format(message.topic, msg))
 
 
 if __name__ == "__main__":
@@ -33,13 +31,12 @@ if __name__ == "__main__":
     parser.add_argument("-l", "--log_level", help="Log Level", default=logging.INFO)
     args = parser.parse_args()
 
-    logging.basicConfig(filename=LOG_FILE, level=args.log_level,
-                        format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
+    logging.basicConfig(filename=awsiot.LOG_FILE, level=args.log_level, format=awsiot.LOG_FORMAT)
 
     subscriber = awsiot.Subscriber(args.endpoint, args.rootCA, args.cert, args.key)
 
     for t in args.topic:
-        logging.info("Subscribing to {}".format(t))
+        logging.info("subscribe {}".format(t))
         subscriber.subscribe(t, my_callback)
         time.sleep(2)  # pause
 

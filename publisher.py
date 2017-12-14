@@ -5,7 +5,6 @@ import json
 import awsiot
 import logging
 
-LOG_FILE = '/var/log/iot.log'
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -25,11 +24,11 @@ if __name__ == "__main__":
 
     publisher = awsiot.Publisher(args.endpoint, args.rootCA, args.cert, args.key)
 
-    logging.basicConfig(filename=LOG_FILE, level=args.log_level)
+    logging.basicConfig(filename=awsiot.LOG_FILE, level=args.log_level, format=awsiot.LOG_FORMAT)
 
     message = {}
     message['foo'] = 'bar'
     messageJson = json.dumps(message)
-    logging.info("Publish {} to {}".format(messageJson, args.topic))
+    logging.info("publish {} to {}".format(messageJson, args.topic))
     publisher.publish(args.topic, messageJson)
 

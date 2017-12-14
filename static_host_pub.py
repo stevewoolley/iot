@@ -8,13 +8,7 @@ import platform
 import psutil
 import datetime
 
-STATE = 'state'
-REPORTED = 'reported'
-DESIRED = 'desired'
-THING_SHADOW = "$aws/things/{}/shadow/update"
-DATE_FORMAT = '%Y/%m/%d %-I:%M %p %Z'
 NET_INTERFACES = ['en0', 'en1', 'en2', 'en3', 'wlan0', 'wlan1', 'eth0', 'eth1']
-LOG_FILE = '/var/log/iot.log'
 
 
 def get_ip(i):
@@ -47,15 +41,14 @@ if __name__ == "__main__":
     parser.add_argument("-l", "--log_level", help="Log Level", default=logging.INFO)
     args = parser.parse_args()
 
-    logging.basicConfig(filename=LOG_FILE, level=args.log_level,
-                        format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
+    logging.basicConfig(filename=awsiot.LOG_FILE, level=args.log_level, format=awsiot.LOG_FORMAT)
 
     publisher = awsiot.Publisher(args.endpoint, args.rootCA, args.cert, args.key, args.thing, args.groupCA)
 
     properties = {}
     mem = psutil.virtual_memory()
     disk = psutil.disk_usage('/')
-    properties["bootTime"] = datetime.datetime.fromtimestamp(psutil.boot_time()).strftime(DATE_FORMAT).strip()
+    properties["bootTime"] = datetime.datetime.fromtimestamp(psutil.boot_time()).strftime(awsiot.DATE_FORMAT).strip()
     if platform.system() == 'Darwin':  # mac
         properties["release"] = platform.mac_ver()[0]
     elif platform.machine().startswith('arm') and platform.system() == 'Linux':  # raspberry pi
@@ -66,9 +59,9 @@ if __name__ == "__main__":
     properties["totalDiskSpaceRoot"] = int(disk.total / (1024 * 1024))
     properties["cpuProcessorCount"] = psutil.cpu_count()
     properties["ramTotal"] = int(mem.total / (1024 * 1024))
-    for i in NET_INTERFACES:
-        properties["{}IpAddress".format(i)] = get_ip(i)
+    for iface in NET_INTERFACES:
+        properties["{}IpAddress".format(iface)] = get_ip(iface)
 
-    topic = THING_SHADOW.format(args.thing)
-    payload = json.dumps({STATE: {REPORTED: properties}})
+    topic = awsiot.THING_SHADOW.format(args.thing)
+    payload = json.dumps({awsiot.STATE: {awsiot.REPORTED: properties}})
     result = publisher.publish(topic, payload)

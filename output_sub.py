@@ -8,8 +8,6 @@ import sys
 import time
 from gpiozero import DigitalOutputDevice
 
-LOG_FILE = '/var/log/iot.log'
-
 
 def my_callback(client, user_data, message):
     try:
@@ -53,9 +51,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    logging.basicConfig(filename=LOG_FILE,
-                        level=args.log_level,
-                        format=awsiot.LOG_FORMAT)
+    logging.basicConfig(filename=awsiot.LOG_FILE, level=args.log_level, format=awsiot.LOG_FORMAT)
 
     subscriber = awsiot.Subscriber(args.endpoint, args.rootCA, args.cert, args.key)
 
