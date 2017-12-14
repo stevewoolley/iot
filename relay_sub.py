@@ -72,7 +72,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    logging.basicConfig(filename=LOG_FILE, level=args.log_level)
+    logging.basicConfig(filename=LOG_FILE, level=args.log_level,
+                        format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
 
     output = OutputDevice(args.pin, args.active_high, args.initial_value)
 

@@ -52,7 +52,8 @@ if __name__ == "__main__":
                         type=float, default=None)
     args = parser.parse_args()
 
-    logging.basicConfig(filename=LOG_FILE, level=args.log_level)
+    logging.basicConfig(filename=LOG_FILE, level=args.log_level,
+                        format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
 
     publisher = awsiot.Publisher(args.endpoint, args.rootCA, args.cert, args.key)
 
