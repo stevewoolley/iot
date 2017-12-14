@@ -55,16 +55,16 @@ if __name__ == "__main__":
 
     logging.basicConfig(filename=LOG_FILE,
                         level=args.log_level,
-                        format='%(asctime)s %(filename)-15s %(funcName)-15s %(levelname)-8s %(message)s')
+                        format=awsiot.LOG_FORMAT)
 
     subscriber = awsiot.Subscriber(args.endpoint, args.rootCA, args.cert, args.key)
 
     output = DigitalOutputDevice(args.pin)
 
-    logging.info("subscribing {}".format(args.topic))
+    logging.info("subscribe {}".format(args.topic))
     subscriber.subscribe(args.topic, my_callback)
     time.sleep(2)  # pause
-    logging.info("subscribing {}/#".format(args.topic))
+    logging.info("subscribe {}/#".format(args.topic))
     subscriber.subscribe("{}/#".format(args.topic), my_callback)
     time.sleep(2)  # pause
 

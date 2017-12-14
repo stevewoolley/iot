@@ -11,7 +11,7 @@ LOG_FILE = '/var/log/iot.log'
 
 
 def pressed():
-    logging.info("button_pub: button pressed on pin: {}".format(args.pin))
+    logging.info("button {} pressed".format(args.pin))
     message = {args.source: args.high_value}
     if args.topic is not None:
         for t in args.topic:
@@ -21,7 +21,7 @@ def pressed():
 
 
 def released():
-    logging.info("button_sub: button_released on pin: {}".format(args.pin))
+    logging.info("button {} released".format(args.pin))
     message = {args.source: args.low_value}
     if args.topic is not None:
         for t in args.topic:
@@ -62,8 +62,9 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    logging.basicConfig(filename=LOG_FILE, level=args.log_level,
-                        format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
+    logging.basicConfig(filename=LOG_FILE,
+                        level=args.log_level,
+                        format=awsiot.LOG_FORMAT)
 
     publisher = awsiot.Publisher(args.endpoint, args.rootCA, args.cert, args.key)
 
