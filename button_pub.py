@@ -51,6 +51,11 @@ if __name__ == "__main__":
                              "If False, the GPIO pin will be pulled low by default. " +
                              "In this case, connect the other side of the button to 3V3",
                         type=bool, default=True)
+    parser.add_argument("-b", "--bounce_time",
+                        help="If None (the default), no software bounce compensation will be performed. " +
+                             "Otherwise, this is the length of time (in seconds) " +
+                             "that the component will ignore changes in state after an initial change.",
+                        type=float, default=None)
     parser.add_argument("-s", "--source", help="Source", default="Sensor")
     parser.add_argument("-y", "--high_value", help="high value", default="high")
     parser.add_argument("-z", "--low_value", help="low value", default="low")
@@ -61,7 +66,7 @@ if __name__ == "__main__":
 
     publisher = awsiot.Publisher(args.endpoint, args.rootCA, args.cert, args.key)
 
-    pir = Button(args.pin, pull_up=args.pull_up)
+    pir = Button(args.pin, pull_up=args.pull_up, bounce_time=args.bounce_time)
 
     pir.when_pressed = pressed
     pir.when_released = released
