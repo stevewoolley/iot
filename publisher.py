@@ -6,7 +6,7 @@ import logging
 
 
 if __name__ == "__main__":
-    parser = awsiot.iot_pub_arg_parser()
+    parser = awsiot.iot_arg_parser()
     args = parser.parse_args()
 
     publisher = awsiot.Publisher(args.endpoint, args.rootCA, args.cert, args.key)

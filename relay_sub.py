@@ -47,7 +47,7 @@ def nested_callback(client, user_data, message):
 
 
 if __name__ == "__main__":
-    parser = awsiot.iot_sub_arg_parser()
+    parser = awsiot.iot_arg_parser()
     parser.add_argument("-p", "--pin", help="gpio pin (using BCM numbering)", type=int, required=True)
     parser.add_argument("-d", "--pulse_delay", help="length of pulse in seconds", type=float, default=0.5)
     parser.add_argument("-a", "--active_high",

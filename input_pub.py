@@ -12,8 +12,7 @@ def pressed():
     message = {args.source: args.high_value}
     if args.topic is not None:
         message[awsiot.MESSAGE] = "{} {}".format(args.source, args.high_value)
-        for t in args.topic:
-            publisher.publish(t, json.dumps(args.source, message))
+        publisher.publish(args.topic, json.dumps(args.source, message))
     if args.thing is not None:
         publisher.publish(awsiot.iot_thing_topic(args.thing), awsiot.iot_payload(awsiot.REPORTED, message))
 
@@ -23,14 +22,13 @@ def released():
     message = {args.source: args.low_value}
     if args.topic is not None:
         message[awsiot.MESSAGE] = "{} {}".format(args.source, args.low_value)
-        for t in args.topic:
-            publisher.publish(t, json.dumps(message))
+        publisher.publish(args.low_topic, json.dumps(message))
     if args.thing is not None:
         publisher.publish(awsiot.iot_thing_topic(args.thing), awsiot.iot_payload(awsiot.REPORTED, message))
 
 
 if __name__ == "__main__":
-    parser = awsiot.iot_pub_arg_parser()
+    parser = awsiot.iot_arg_parser()
     parser.add_argument("-p", "--pin", help="gpio pin (using BCM numbering)", type=int, required=True)
     parser.add_argument("-u", "--pull_up",
                         help="If True (the default), the GPIO pin will be pulled high by default. " +
@@ -46,8 +44,11 @@ if __name__ == "__main__":
     parser.add_argument("-s", "--source", help="Source", required=True)
     parser.add_argument("-y", "--high_value", help="high value", default=1)
     parser.add_argument("-z", "--low_value", help="low value", default=0)
-
+    parser.add_argument("-o", "--low_topic", help="Low value topic (defaults to high_value if not assigned")
     args = parser.parse_args()
+    # default low_topic to topic if not defined
+    if args.low_topic is None:
+        args.low_topic = args.topic
 
     logging.basicConfig(filename=awsiot.LOG_FILE, level=args.log_level, format=awsiot.LOG_FORMAT)
 
