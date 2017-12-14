@@ -1,6 +1,7 @@
 import os
 import logging
 import json
+import argparse
 from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
 from AWSIoTPythonSDK.core.greengrass.discovery.providers import DiscoveryInfoProvider
 from AWSIoTPythonSDK.core.protocol.connection.cores import ProgressiveBackOffCore
@@ -16,6 +17,12 @@ DATE_FORMAT = '%Y/%m/%d %-I:%M %p %Z'
 LOG_FORMAT = '%(asctime)s %(filename)-15s %(funcName)-15s %(levelname)-8s %(message)s'
 LOG_FILE = '/var/log/iot.log'
 DATE_FORMAT = '%Y/%m/%d %-I:%M %p %Z'
+MESSAGE = 'message'
+TOPIC_STATUS_ON = ['/1', '/on']
+TOPIC_STATUS_OFF = ['/0', '/off']
+TOPIC_STATUS_TOGGLE = ['/toggle']
+TOPIC_STATUS_PULSE = ['/blink', '/pulse']
+
 
 def iot_thing_topic(thing):
     return THING_SHADOW.format(thing)
@@ -23,6 +30,20 @@ def iot_thing_topic(thing):
 
 def iot_payload(target, doc):
     return json.dumps({STATE: {target: doc}})
+
+
+def iot_arg_parser():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-e", "--endpoint", required=True, help="Your AWS IoT custom endpoint")
+    parser.add_argument("-r", "--rootCA", required=True, help="Root CA file path")
+    parser.add_argument("-c", "--cert", required=True, help="Certificate file path")
+    parser.add_argument("-k", "--key", required=True, help="Private key file path")
+    parser.add_argument("-n", "--thing", help="Targeted thing name")
+    parser.add_argument("-g", "--groupCA", default=None, help="Group CA file path")
+    parser.add_argument("-m", "--mqttHost", default=None, help="Targeted mqtt host")
+    parser.add_argument("-t", "--topic", help="MQTT topic(s)", required=False)
+    parser.add_argument("-l", "--log_level", help="Log Level", default=logging.INFO)
+    return parser
 
 
 class Discoverer:
@@ -199,6 +220,7 @@ class Subscriber:
         self._connected = True
 
     def subscribe(self, topic, callback, qos=1):
+        logging.info("subscribe {}".format(topic))
         if not self.connected:
             self.connect()
         self._client.subscribe(topic, qos, callback)

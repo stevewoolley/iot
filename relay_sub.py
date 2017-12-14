@@ -21,7 +21,7 @@ def my_callback(client, user_data, message):
     try:
         msg = json.loads(message.payload)
     except ValueError:
-        msg = ""
+        msg = None
     logging.info(
         "received {} {}".format(message.topic, msg))
     if message.topic == args.topic:
@@ -31,13 +31,13 @@ def my_callback(client, user_data, message):
             pulse()
         else:
             output.on()
-    if message.topic.replace(args.topic, '') in ['/1', '/on']:
+    if message.topic.replace(args.topic, '') in awsiot.TOPIC_STATUS_ON:
         output.on()
-    elif message.topic.replace(args.topic, '') in ['/0', '/off']:
+    elif message.topic.replace(args.topic, '') in awsiot.TOPIC_STATUS_OFF:
         output.off()
-    elif message.topic.replace(args.topic, '') in ['/blink', '/pulse']:
+    elif message.topic.replace(args.topic, '') in awsiot.TOPIC_STATUS_PULSE:
         pulse()
-    elif message.topic.replace(args.topic, '') in ['/toggle']:
+    elif message.topic.replace(args.topic, '') in awsiot.TOPIC_STATUS_TOGGLE:
         output.toggle()
 
 

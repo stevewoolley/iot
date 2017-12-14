@@ -9,19 +9,21 @@ from signal import pause
 
 
 def pressed():
-    logging.info("button {} pressed".format(args.pin))
+    logging.info("{} {} pressed".format(args.source, args.pin))
     message = {args.source: args.high_value}
     if args.topic is not None:
+        message[awsiot.MESSAGE] = "{} {}".format(args.source, args.high_value)
         for t in args.topic:
-            publisher.publish(t, json.dumps(message))
+            publisher.publish(t, json.dumps(args.source, message))
     if args.thing is not None:
         publisher.publish(awsiot.iot_thing_topic(args.thing), awsiot.iot_payload(awsiot.REPORTED, message))
 
 
 def released():
-    logging.info("button {} released".format(args.pin))
+    logging.info("{} {} released".format(args.source, args.pin))
     message = {args.source: args.low_value}
     if args.topic is not None:
+        message[awsiot.MESSAGE] = "{} {}".format(args.source, args.low_value)
         for t in args.topic:
             publisher.publish(t, json.dumps(message))
     if args.thing is not None:
@@ -29,19 +31,7 @@ def released():
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-e", "--endpoint", required=True, help="Your AWS IoT custom endpoint")
-    parser.add_argument("-r", "--rootCA", required=True, help="Root CA file path")
-    parser.add_argument("-c", "--cert", required=True, help="Certificate file path")
-    parser.add_argument("-k", "--key", required=True, help="Private key file path")
-    parser.add_argument("-n", "--thing", help="Targeted thing name")
-
-    parser.add_argument("-g", "--groupCA", default=None, help="Group CA file path")
-    parser.add_argument("-m", "--mqttHost", default=None, help="Targeted mqtt host")
-
-    parser.add_argument("-t", "--topic", help="MQTT topic(s)", nargs='+', required=False)
-    parser.add_argument("-l", "--log_level", help="Log Level", default=logging.INFO)
-
+    parser = awsiot.iot_arg_parser()
     parser.add_argument("-p", "--pin", help="gpio pin (using BCM numbering)", type=int, required=True)
     parser.add_argument("-u", "--pull_up",
                         help="If True (the default), the GPIO pin will be pulled high by default. " +
@@ -54,7 +44,7 @@ if __name__ == "__main__":
                              "Otherwise, this is the length of time (in seconds) " +
                              "that the component will ignore changes in state after an initial change.",
                         type=float, default=None)
-    parser.add_argument("-s", "--source", help="Source", default="Sensor")
+    parser.add_argument("-s", "--source", help="Source", required=True)
     parser.add_argument("-y", "--high_value", help="high value", default="high")
     parser.add_argument("-z", "--low_value", help="low value", default="low")
 
