@@ -8,7 +8,7 @@ import time
 from gpiozero import DigitalOutputDevice
 
 
-def my_callback(client, user_data, message):
+def root_callback(client, user_data, message):
     try:
         msg = json.loads(message.payload)
     except ValueError:
@@ -21,6 +21,14 @@ def my_callback(client, user_data, message):
             output.on()
         else:
             output.blink(args.on_time, args.off_time, args.default)
+
+
+def nested_callback(client, user_data, message):
+    try:
+        msg = json.loads(message.payload)
+    except ValueError:
+        msg = None
+    logging.info("received nested {} {}".format(message.topic, msg))
     if message.topic.replace(args.topic, '') in awsiot.TOPIC_STATUS_ON:
         output.on()
     elif message.topic.replace(args.topic, '') in awsiot.TOPIC_STATUS_OFF:
@@ -43,10 +51,9 @@ if __name__ == "__main__":
 
     output = DigitalOutputDevice(args.pin)
 
-    subscriber.subscribe(args.topic, my_callback)
+    subscriber.subscribe(args.topic, root_callback)
     time.sleep(2)  # pause
-    if args.topic is not None:
-        subscriber.subscribe("{}/#".format(args.topic), my_callback)
+    subscriber.subscribe("{}/#".format(args.topic), nested_callback)
     time.sleep(2)  # pause
 
     # Loop forever
