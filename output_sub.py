@@ -9,7 +9,8 @@ import time
 try:
     from gpiozero import DigitalOutputDevice
 except ImportError:
-    logging.info("Unable to import gpiozero")
+    logging.error("Unable to import gpiozero")
+    pass
 
 
 def device(cmd):
