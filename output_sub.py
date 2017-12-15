@@ -16,7 +16,6 @@ except ImportError:
 def device(cmd):
     logging.info("device command: {}".format(cmd))
     if args.pin is not None:
-        output = DigitalOutputDevice(args.pin)
         if cmd < 0:
             output.on()
         elif cmd == 0:
@@ -63,6 +62,9 @@ if __name__ == "__main__":
     logging.basicConfig(filename=awsiot.LOG_FILE, level=args.log_level, format=awsiot.LOG_FORMAT)
 
     subscriber = awsiot.Subscriber(args.endpoint, args.rootCA, args.cert, args.key, args.thing, args.groupCA)
+
+    if args.pin is not None:
+        output = DigitalOutputDevice(args.pin)
 
     subscriber.subscribe(args.topic, callback)
     time.sleep(2)  # pause
