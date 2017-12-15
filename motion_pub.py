@@ -16,12 +16,12 @@ def pub(value):
 
 
 def motion():
-    logging.info("{} {} detected".format(args.source, args.pin))
+    logging.info("{} {} {}".format(args.source, args.pin, args.high_value))
     pub(args.high_value)
 
 
 def no_motion():
-    logging.info("{} {} ended".format(args.source, args.pin))
+    logging.info("{} {} {}".format(args.source, args.pin, args.low_value))
     pub(args.low_value)
 
 

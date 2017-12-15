@@ -16,12 +16,12 @@ def pub(value):
 
 
 def pressed():
-    logging.info("{} {} pressed".format(args.source, args.pin))
+    logging.info("{} {} {}".format(args.source, args.pin, args.high_value))
     pub(args.high_value)
 
 
 def released():
-    logging.info("{} {} released".format(args.source, args.pin))
+    logging.info("{} {} {}".format(args.source, args.pin, args.low_value))
     pub(args.high_value)
 
 
