@@ -3,8 +3,8 @@
 import json
 import awsiot
 import logging
-from gpiozero import Button
 from signal import pause
+from gpiozero import Button
 
 
 def pub(value):
@@ -15,12 +15,12 @@ def pub(value):
         publisher.publish(awsiot.iot_thing_topic(args.thing), awsiot.iot_payload(awsiot.REPORTED, {args.source: value}))
 
 
-def pressed():
+def high():
     logging.info("{} {} {}".format(args.source, args.pin, args.high_value))
     pub(args.high_value)
 
 
-def released():
+def low():
     logging.info("{} {} {}".format(args.source, args.pin, args.low_value))
     pub(args.low_value)
 
@@ -54,7 +54,7 @@ if __name__ == "__main__":
 
     inp = Button(args.pin, pull_up=args.pull_up, bounce_time=args.bounce_time)
 
-    inp.when_pressed = pressed
-    inp.when_released = released
+    inp.when_pressed = high
+    inp.when_released = low
 
     pause()

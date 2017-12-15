@@ -3,8 +3,8 @@
 import json
 import awsiot
 import logging
-from gpiozero import MotionSensor
 from signal import pause
+from gpiozero import MotionSensor
 
 
 def pub(value):

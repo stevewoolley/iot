@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import argparse
 import json
 import awsiot
 import logging
@@ -10,9 +9,9 @@ from gpiozero import OutputDevice
 
 
 def pulse():
-    output.off()
-    time.sleep(args.pulse_delay)
     output.on()
+    time.sleep(args.pulse_delay)
+    output.off()
 
 
 def root_callback(client, user_data, message):
