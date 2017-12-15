@@ -7,9 +7,9 @@ from signal import pause
 from gpiozero import Button
 
 
-def pub(value):
+def pub(topic, value):
     if args.topic is not None:
-        publisher.publish(args.topic,
+        publisher.publish(topic,
                           json.dumps({args.source: value, awsiot.MESSAGE: "{} {}".format(args.source, value)}))
     if args.thing is not None:
         publisher.publish(awsiot.iot_thing_topic(args.thing), awsiot.iot_payload(awsiot.REPORTED, {args.source: value}))
@@ -17,12 +17,12 @@ def pub(value):
 
 def high():
     logging.info("{} {} {}".format(args.source, args.pin, args.high_value))
-    pub(args.high_value)
+    pub(args.topic, args.high_value)
 
 
 def low():
     logging.info("{} {} {}".format(args.source, args.pin, args.low_value))
-    pub(args.low_value)
+    pub(args.low_topic, args.low_value)
 
 
 if __name__ == "__main__":
