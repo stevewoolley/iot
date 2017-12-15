@@ -22,7 +22,7 @@ def pressed():
 
 def released():
     logging.info("{} {} {}".format(args.source, args.pin, args.low_value))
-    pub(args.high_value)
+    pub(args.low_value)
 
 
 if __name__ == "__main__":
