@@ -3,7 +3,6 @@
 import json
 import awsiot
 import logging
-from signal import pause
 import Adafruit_DHT
 
 DHT11 = 11
@@ -38,5 +37,3 @@ if __name__ == "__main__":
         pub(temperature, humidity)
     else:
         logging.warn("Can't read temperature/humidity from DHT {}".format(args.pin))
-
-    pause()
