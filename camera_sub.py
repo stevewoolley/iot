@@ -54,7 +54,7 @@ if __name__ == "__main__":
     parser.add_argument("-x", "--width", help="camera resolution width", type=int, default=640)
     parser.add_argument("-y", "--height", help="camera resolution height", type=int, default=480)
     parser.add_argument("-z", "--rotation", help="camera rotation", type=int, default=0)
-    parser.add_argument("-n", "--source", help="source name", default=platform.node().split('.')[0])
+    parser.add_argument("-s", "--source", help="source name", default=platform.node().split('.')[0])
     parser.add_argument("-b", "--bucket", help="S3 bucket")
     args = parser.parse_args()
 
