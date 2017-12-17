@@ -56,7 +56,7 @@ def is_locked(filepath):
 
 def cp_to_s3(file_name, bucket):
     s3 = boto3.resource('s3')
-    s3.meta.client.upload_file(file_name, bucket)
+    s3.meta.client.upload_file(file_name, bucket, file_name)
 
 
 def mv_to_s3(file_name, bucket):
