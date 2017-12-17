@@ -14,15 +14,14 @@ except ImportError:
     pass
 
 
-def snapshot():
+def snapshot(filename):
     try:
-        filename = "{}-{}.jpg".format(args.source, awsiot.now_string())
         logging.info("snapshot: {}".format(filename))
         camera.capture(filename)
-        return filename
+        return True
     except Exception as e:
         logging.error("snapshot failed {}".format(e.message))
-        return None
+        return False
 
 
 def callback(client, user_data, message):
@@ -36,9 +35,13 @@ def callback(client, user_data, message):
         cmd = commands.pop(0)
         if cmd == 'snapshot':
             logging.info("command: {}".format(cmd))
-            filename = snapshot()
-            if filename is not None and args.bucket is not None:
-                awsiot.mv_to_s3(filename, args.bucket)
+            timestamp = awsiot.now_string()
+            filename = "{}-{}.jpg".format(args.source, timestamp)
+            if snapshot(filename) and args.bucket is not None:
+                awsiot.mv_to_s3(filename,
+                                args.bucket,
+                                {'Created': timestamp, 'Source': args.source}
+                                )
         elif cmd == 'recording':
             logging.info("command: {}".format(cmd))
         elif cmd == 'recognize':

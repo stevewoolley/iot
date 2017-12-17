@@ -54,14 +54,22 @@ def is_locked(filepath):
     return locked
 
 
-def cp_to_s3(file_name, bucket):
+def cp_to_s3(file_name, bucket, tags=None):
     s3 = boto3.resource('s3')
     s3.meta.client.upload_file(file_name, bucket, file_name)
+    if tags is not None:
+        t = []
+        for k, v in tags.items():
+            t.append({'Key': k, 'Value': v})
+        s3.meta.client.put_object_tagging(Bucket=bucket, Key=file_name, Tagging={'TagSet': t})
 
 
-def mv_to_s3(file_name, bucket):
-    cp_to_s3(file_name, bucket)
-    os.remove(file_name)
+def mv_to_s3(file_name, bucket, tags=None):
+    cp_to_s3(file_name, bucket, tags)
+    try:
+        os.remove(file_name)
+    except OSError, e:
+        logging.error("Failed to remove {}: {}".format(e.filename, e.strerror))
 
 
 def iot_thing_topic(thing):
