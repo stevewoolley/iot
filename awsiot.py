@@ -2,6 +2,8 @@ import os
 import logging
 import json
 import argparse
+import datetime
+import boto3
 from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
 from AWSIoTPythonSDK.core.greengrass.discovery.providers import DiscoveryInfoProvider
 from AWSIoTPythonSDK.core.protocol.connection.cores import ProgressiveBackOffCore
@@ -22,6 +24,44 @@ TOPIC_STATUS_ON = ['/1', '/on']
 TOPIC_STATUS_OFF = ['/0', '/off']
 TOPIC_STATUS_TOGGLE = ['/toggle']
 TOPIC_STATUS_PULSE = ['/blink', '/pulse']
+
+
+def now_string():
+    return datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+
+
+def convert_celsius_to_fahrenheit(c):
+    return 9.0 / 5.0 * c + 32
+
+
+def camel_case(s):
+    s = s.title().replace(' ', '').replace('\t', '').replace('\n', '')
+    return s[0].lower() + s[1:]
+
+
+def is_locked(filepath):
+    """Checks if a file is locked by opening it in append mode.
+    If no exception thrown, then the file is not locked.
+    """
+    locked = None
+    if os.path.exists(filepath):
+        try:
+            os.rename(filepath, filepath)
+            locked = False
+        except OSError as ex:
+            locked = True
+            logging.warning("file locked {} {}".format(filepath, ex.message))
+    return locked
+
+
+def cp_to_s3(file_name, bucket):
+    s3 = boto3.resource('s3')
+    s3.meta.client.upload_file(file_name, bucket)
+
+
+def mv_to_s3(file_name, bucket):
+    cp_to_s3(file_name, bucket)
+    os.remove(file_name)
 
 
 def iot_thing_topic(thing):
