@@ -74,7 +74,7 @@ if __name__ == "__main__":
 
     subscriber.subscribe(args.topic, callback)
     time.sleep(2)  # pause
-    subscriber.subscribe("{}/+".format(args.topic), level_callback)
+    subscriber.subscribe("{}/#".format(args.topic), level_callback)
     time.sleep(2)  # pause
 
     # Loop forever
