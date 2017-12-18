@@ -19,10 +19,10 @@ THING_SHADOW = "$aws/things/{}/shadow/update"
 LOG_FORMAT = '%(asctime)s %(filename)-15s %(funcName)-15s %(levelname)-8s %(message)s'
 DATE_FORMAT = '%Y/%m/%d %-I:%M %p %Z'
 FILE_DATE_FORMAT = '%Y/%m/%d %-I:%M %p %Z'
-TOPIC_STATUS_ON = ['/1', '/on']
-TOPIC_STATUS_OFF = ['/0', '/off']
-TOPIC_STATUS_TOGGLE = ['/toggle']
-TOPIC_STATUS_PULSE = ['/blink', '/pulse']
+TOPIC_STATUS_ON = ['1', 'on']
+TOPIC_STATUS_OFF = ['0', 'off']
+TOPIC_STATUS_TOGGLE = ['toggle']
+TOPIC_STATUS_PULSE = ['blink', 'pulse']
 
 
 def file_timestamp_string(timestamp=datetime.datetime.now()):
