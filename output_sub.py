@@ -28,7 +28,7 @@ def callback(client, user_data, message):
         msg = json.loads(message.payload)
     except ValueError:
         msg = None
-    logging.info("received {} {}".format(message.topic, msg))
+    logging.debug("received {} {}".format(message.topic, msg))
     if message.topic == args.topic:
         device(args.default)
 
@@ -39,7 +39,7 @@ def level_callback(client, user_data, message):
     except ValueError:
         msg = None
     level = message.topic.replace(args.topic, '')
-    logging.info("received {} {}".format(message.topic, msg))
+    logging.debug("received {} {}".format(message.topic, msg))
     if level in awsiot.TOPIC_STATUS_ON:
         device(-1)
     elif level in awsiot.TOPIC_STATUS_OFF:

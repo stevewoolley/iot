@@ -14,18 +14,23 @@ LOG_FILE = '/var/log/iot.log'
 STATE = 'state'
 REPORTED = 'reported'
 DESIRED = 'desired'
+MESSAGE = 'message'
 THING_SHADOW = "$aws/things/{}/shadow/update"
 LOG_FORMAT = '%(asctime)s %(filename)-15s %(funcName)-15s %(levelname)-8s %(message)s'
 DATE_FORMAT = '%Y/%m/%d %-I:%M %p %Z'
-MESSAGE = 'message'
+FILE_DATE_FORMAT = '%Y/%m/%d %-I:%M %p %Z'
 TOPIC_STATUS_ON = ['/1', '/on']
 TOPIC_STATUS_OFF = ['/0', '/off']
 TOPIC_STATUS_TOGGLE = ['/toggle']
 TOPIC_STATUS_PULSE = ['/blink', '/pulse']
 
 
-def now_file_string():
-    return datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+def file_timestamp_string(timestamp=datetime.datetime.now()):
+    return timestamp.strftime(FILE_DATE_FORMAT)
+
+
+def timestamp_string(timestamp=datetime.datetime.now()):
+    return timestamp.strftime(FILE_DATE_FORMAT)
 
 
 def convert_celsius_to_fahrenheit(c):
@@ -70,7 +75,7 @@ def mv_to_s3(file_name, bucket, tags=None):
         logging.error("Failed to remove {}: {}".format(e.filename, e.strerror))
 
 
-def rekognize(file_name, bucket, confidence=75):
+def recognize(file_name, bucket, confidence=75):
     client = boto3.client('rekognition')
     return client.detect_labels(Image={'S3Object': {'Bucket': bucket, 'Name': file_name}}, MinConfidence=confidence)
 
@@ -151,7 +156,7 @@ class Discoverer:
                 break
             except BaseException as e:
                 retry_count -= 1
-                logging.info("discovery backoff...")
+                logging.debug("discovery backoff...")
                 backoff_core.backOff()
         if not self._discovered:
             raise RuntimeError("discovery failed")
@@ -187,7 +192,7 @@ class Publisher:
 
     def connect(self):
         # use the presence of group_ca_path to determine if local or cloud
-        logging.info("publisher connect {}".format(self._end_point))
+        logging.debug("publisher connect {}".format(self._end_point))
         if self._group_ca_path is None:
             self._client.configureCredentials(self._root_ca_path, self._private_key_path, self._certificate_path)
             self._client.configureEndpoint(self._end_point, 8883)
@@ -248,7 +253,7 @@ class Subscriber:
 
     def connect(self):
         # use the presence of group_ca_path to determine if local or cloud
-        logging.info("subscriber connect {}".format(self._end_point))
+        logging.debug("subscriber connect {}".format(self._end_point))
         if self._group_ca_path is None:
             self._client.configureCredentials(self._root_ca_path, self._private_key_path, self._certificate_path)
             self._client.configureEndpoint(self._end_point, 8883)

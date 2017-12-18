@@ -6,6 +6,7 @@ import logging
 import sys
 import time
 import platform
+import datetime
 
 try:
     import picamera
@@ -29,41 +30,39 @@ def callback(client, user_data, message):
         msg = json.loads(message.payload)
     except ValueError:
         msg = None
-    logging.info("received {} {}".format(message.topic, msg))
+    logging.debug("received {} {}".format(message.topic, msg))
     commands = filter(None, message.topic.replace(args.topic, '').split('/'))
+    now = datetime.datetime.now()
     if len(commands) > 0:
         cmd = commands.pop(0)
         if cmd == 'workspace':
-            logging.info("command: {}".format(cmd))
-            timestamp = awsiot.now_file_string()
-            filename = "{}-{}.jpg".format(args.source, timestamp)
+            logging.debug("command: {}".format(cmd))
+            filename = "{}-{}.jpg".format(args.source, awsiot.file_timestamp_string(now))
             if snapshot(filename) and args.bucket is not None:
                 awsiot.mv_to_s3(filename,
                                 args.bucket,
-                                {'Created': timestamp, 'Source': args.source}
+                                {'Created': awsiot.timestamp_string(now), 'Source': args.source}
                                 )
         elif cmd == 'snapshot':
-            logging.info("command: {}".format(cmd))
-            timestamp = awsiot.now_file_string()
+            logging.debug("command: {}".format(cmd))
             filename = "{}.jpg".format(args.source)
             if snapshot(filename) and args.web_bucket is not None:
                 awsiot.mv_to_s3(filename,
                                 args.web_bucket,
-                                {'Created': timestamp, 'Source': args.source}
+                                {'Created': awsiot.timestamp_string(now), 'Source': args.source}
                                 )
         elif cmd == 'recording':
-            logging.info("command: {}".format(cmd))
+            logging.debug("command: {}".format(cmd))
         elif cmd == 'recognize':
-            logging.info("command: {}".format(cmd))
-            timestamp = awsiot.now_file_string()
-            filename = "{}-{}.jpg".format(args.source, timestamp)
+            logging.debug("command: {}".format(cmd))
+            filename = "{}-{}.jpg".format(args.source, awsiot.file_timestamp_string(now))
             if snapshot(filename) and args.bucket is not None:
                 awsiot.mv_to_s3(filename,
                                 args.bucket,
-                                {'Created': timestamp, 'Source': args.source}
+                                {'Created': awsiot.timestamp_string(now), 'Source': args.source}
                                 )
-                result = awsiot.rekognize(filename, args.bucket)
-                logging.info("rekognize result: {}".format(result))
+                result = awsiot.recognize(filename, args.bucket)
+                logging.info("recognize result: {}".format(result))
         else:
             logging.warning('Unrecognized command: {}'.format(cmd))
     else:
