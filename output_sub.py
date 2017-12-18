@@ -38,16 +38,23 @@ def level_callback(client, user_data, message):
         msg = json.loads(message.payload)
     except ValueError:
         msg = None
-    level = message.topic.replace(args.topic, '')
     logging.debug("received {} {}".format(message.topic, msg))
-    if level in awsiot.TOPIC_STATUS_ON:
-        device(-1)
-    elif level in awsiot.TOPIC_STATUS_OFF:
-        device(0)
-    elif level in awsiot.TOPIC_STATUS_PULSE:
-        device(args.default)
-    else:
-        logging.warning('Device command ignored: {}'.format(level))
+    commands = filter(None, message.topic.replace(args.topic, '').split('/'))
+    if len(commands) > 0:
+        cmd = commands.pop(0)
+        if cmd in awsiot.TOPIC_STATUS_ON:
+            device(-1)
+        elif cmd in awsiot.TOPIC_STATUS_OFF:
+            device(0)
+        elif cmd in awsiot.TOPIC_STATUS_PULSE:
+            if len(commands) > 0:
+                cmd = commands.pop(0)
+                if awsiot.int_val(cmd) is not None:
+                    device(awsiot.int_val(cmd))
+            else:
+                device(args.default)
+        else:
+            logging.warning('Device command ignored: {}'.format(level))
 
 
 if __name__ == "__main__":

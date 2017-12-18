@@ -33,6 +33,20 @@ def timestamp_string(timestamp=datetime.datetime.now()):
     return timestamp.strftime(FILE_DATE_FORMAT)
 
 
+def int_val(s):
+    try:
+        return int(s)
+    except ValueError:
+        return None
+
+
+def float_val(s):
+    try:
+        return float(s)
+    except ValueError:
+        return None
+
+
 def convert_celsius_to_fahrenheit(c):
     return 9.0 / 5.0 * c + 32
 
