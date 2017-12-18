@@ -54,7 +54,7 @@ def level_callback(client, user_data, message):
             else:
                 device(args.default)
         else:
-            logging.warning('Device command ignored: {}'.format(level))
+            logging.warning('Device command ignored: {}'.format(cmd))
 
 
 if __name__ == "__main__":
