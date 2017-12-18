@@ -15,9 +15,7 @@ STATE = 'state'
 REPORTED = 'reported'
 DESIRED = 'desired'
 THING_SHADOW = "$aws/things/{}/shadow/update"
-DATE_FORMAT = '%Y/%m/%d %-I:%M %p %Z'
 LOG_FORMAT = '%(asctime)s %(filename)-15s %(funcName)-15s %(levelname)-8s %(message)s'
-LOG_FILE = '/var/log/iot.log'
 DATE_FORMAT = '%Y/%m/%d %-I:%M %p %Z'
 MESSAGE = 'message'
 TOPIC_STATUS_ON = ['/1', '/on']
@@ -26,7 +24,7 @@ TOPIC_STATUS_TOGGLE = ['/toggle']
 TOPIC_STATUS_PULSE = ['/blink', '/pulse']
 
 
-def now_string():
+def now_file_string():
     return datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
 
 

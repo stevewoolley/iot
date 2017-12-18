@@ -33,13 +33,22 @@ def callback(client, user_data, message):
     commands = filter(None, message.topic.replace(args.topic, '').split('/'))
     if len(commands) > 0:
         cmd = commands.pop(0)
-        if cmd == 'snapshot':
+        if cmd == 'workspace':
             logging.info("command: {}".format(cmd))
-            timestamp = awsiot.now_string()
+            timestamp = awsiot.now_file_string()
             filename = "{}-{}.jpg".format(args.source, timestamp)
             if snapshot(filename) and args.bucket is not None:
                 awsiot.mv_to_s3(filename,
                                 args.bucket,
+                                {'Created': timestamp, 'Source': args.source}
+                                )
+        elif cmd == 'snapshot':
+            logging.info("command: {}".format(cmd))
+            timestamp = awsiot.now_file_string()
+            filename = "{}.jpg".format(args.source)
+            if snapshot(filename) and args.web_bucket is not None:
+                awsiot.mv_to_s3(filename,
+                                args.web_bucket,
                                 {'Created': timestamp, 'Source': args.source}
                                 )
         elif cmd == 'recording':
@@ -59,6 +68,7 @@ if __name__ == "__main__":
     parser.add_argument("-z", "--rotation", help="camera rotation", type=int, default=0)
     parser.add_argument("-s", "--source", help="source name", default=platform.node().split('.')[0])
     parser.add_argument("-b", "--bucket", help="S3 bucket")
+    parser.add_argument("-w", "--web_bucket", help="S3 bucket for web storage")
     args = parser.parse_args()
 
     logging.basicConfig(filename=awsiot.LOG_FILE, level=args.log_level, format=awsiot.LOG_FORMAT)
