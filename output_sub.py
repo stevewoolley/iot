@@ -29,8 +29,7 @@ def callback(client, user_data, message):
     except ValueError:
         msg = None
     logging.debug("received {} {}".format(message.topic, msg))
-    if message.topic == args.topic:
-        device(args.default)
+    device(args.default)
 
 
 def level_callback(client, user_data, message):
