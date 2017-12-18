@@ -55,6 +55,15 @@ def callback(client, user_data, message):
             logging.info("command: {}".format(cmd))
         elif cmd == 'recognize':
             logging.info("command: {}".format(cmd))
+            timestamp = awsiot.now_file_string()
+            filename = "{}-{}.jpg".format(args.source, timestamp)
+            if snapshot(filename) and args.bucket is not None:
+                awsiot.mv_to_s3(filename,
+                                args.bucket,
+                                {'Created': timestamp, 'Source': args.source}
+                                )
+                result = awsiot.rekognize(filename, args.bucket)
+                logging.info("rekognize result: {}".format(result))
         else:
             logging.warning('Unrecognized command: {}'.format(cmd))
     else:

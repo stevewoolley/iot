@@ -70,6 +70,11 @@ def mv_to_s3(file_name, bucket, tags=None):
         logging.error("Failed to remove {}: {}".format(e.filename, e.strerror))
 
 
+def rekognize(file_name, bucket, confidence=75):
+    client = boto3.client('rekognition')
+    return client.detect_labels(Image={'S3Object': {'Bucket': bucket, 'Name': file_name}}, MinConfidence=confidence)
+
+
 def iot_thing_topic(thing):
     return THING_SHADOW.format(thing)
 
