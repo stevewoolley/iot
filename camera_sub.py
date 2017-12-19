@@ -29,11 +29,12 @@ def snapshot(filename):
 
 def recording(filename, max_length=60, width=640, height=480, quality=23):
     try:
-        logging.info("recording: {}".format(filename))
+        logging.info("recording start: {}".format(filename))
         camera.resolution = (width, height)
         camera.start_recording(filename, format='h264', quality=quality)
         camera.wait_recording(max_length)
         camera.stop_recording()
+        logging.info("recording end: {}".format(filename))
         return True
     except Exception as e:
         logging.error("snapshot failed {}".format(e.message))
