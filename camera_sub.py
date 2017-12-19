@@ -62,9 +62,13 @@ def callback(client, user_data, message):
                 result = awsiot.recognize(filename, args.bucket)
                 logging.info("recognize result: {}".format(result))
                 if "Labels" in result:
-                    awsiot.s3_tag(filename, args.bucket,
-                                  {'Created': awsiot.timestamp_string(now), 'Source': args.source,
-                                   'Recognize': awsiot.stringify(result['Labels'], 'Name')})
+                    awsiot.s3_tag(filename,
+                                  args.bucket,
+                                  {'Created': awsiot.timestamp_string(now),
+                                   'Source': args.source,
+                                   'Recognize': awsiot.stringify(result['Labels'], 'Name')
+                                   }
+                                  )
         else:
             logging.warning('Unrecognized command: {}'.format(cmd))
     else:
