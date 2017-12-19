@@ -66,7 +66,7 @@ def callback(client, user_data, message):
                                   args.bucket,
                                   {'Created': awsiot.timestamp_string(now),
                                    'Source': args.source,
-                                   'Recognize': awsiot.stringify(result['Labels'], 'Name')
+                                   'Recognize': awsiot.tagify(result['Labels'], 'Name')
                                    }
                                   )
         else:

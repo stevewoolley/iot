@@ -33,13 +33,12 @@ def timestamp_string(timestamp=datetime.datetime.now()):
     return timestamp.strftime(DATE_FORMAT)
 
 
-def stringify(arr, field):
+def tagify(arr, field):
     o = []
     for i in arr:
         if field in i:
             o.append(i[field])
-    logging.warning(','.join(o))
-    return ','.join(o)
+    return '+'.join(o)
 
 
 def int_val(s):
@@ -81,14 +80,12 @@ def is_locked(filepath):
 
 
 def s3_tag(file_name, bucket, tags=None, s3=None):
-    logging.warning('XXX1: {}'.format(tags))
     if s3 is None:
         s3 = boto3.resource('s3')
     if tags is not None:
         t = []
         for k, v in tags.items():
-            t.append({'Key': k, 'Value': v})
-        logging.warning('XXX2: {}'.format(t))
+            t.append({'Key': k.strip(), 'Value': v.strip()})
         s3.meta.client.put_object_tagging(Bucket=bucket, Key=file_name, Tagging={'TagSet': t})
 
 
