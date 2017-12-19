@@ -1,4 +1,5 @@
 import os
+import subprocess as sp
 import logging
 import json
 import argparse
@@ -31,6 +32,24 @@ def file_timestamp_string(timestamp=datetime.datetime.now()):
 
 def timestamp_string(timestamp=datetime.datetime.now()):
     return timestamp.strftime(DATE_FORMAT)
+
+
+def os_execute(s):
+    """Returns string result of os call"""
+    try:
+        result = sp.check_output(s.split()).rstrip('\n')
+        return result
+    except Exception as ex:
+        return None
+
+
+def os_execute_shell(s):
+    """Returns string result of os call"""
+    try:
+        result = sp.check_output([s], shell=True).rstrip('\n')
+        return result
+    except Exception as ex:
+        return None
 
 
 def tagify(arr, field):
@@ -98,6 +117,10 @@ def cp_to_s3(file_name, bucket, tags=None, s3=None):
 
 def mv_to_s3(file_name, bucket, tags=None, s3=None):
     cp_to_s3(file_name, bucket, tags, s3)
+    rm(file_name)
+
+
+def rm(file_name):
     try:
         os.remove(file_name)
     except OSError, e:

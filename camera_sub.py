@@ -64,9 +64,12 @@ def callback(client, user_data, message):
                 awsiot.mv_to_s3(filename, args.web_bucket, tags)
         elif cmd == 'recording':
             logging.debug("command: {}".format(cmd))
-            filename = "{}-{}.h264".format(args.source, awsiot.file_timestamp_string(now))
-            if recording(filename) and args.archive_bucket is not None:
-                awsiot.mv_to_s3(filename, args.archive_bucket, tags)
+            filename_h264 = "{}-{}.h264".format(args.source, awsiot.file_timestamp_string(now))
+            filename_mp4 = "{}-{}.mp4".format(args.source, awsiot.file_timestamp_string(now))
+            if recording(filename_h264) and args.archive_bucket is not None:
+                awsiot.os_execute('MP4Box -add {} {}'.format(filename_h264, filename_mp4))
+                awsiot.mv_to_s3(filename_mp4, args.archive_bucket, tags)
+                awsiot.rm(filename_h264)
         elif cmd == RECOGNIZE:
             logging.debug("command: {}".format(cmd))
             filename = "{}-{}.jpg".format(args.source, awsiot.file_timestamp_string(now))
