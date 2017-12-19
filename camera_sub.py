@@ -14,6 +14,8 @@ except ImportError:
     logging.error("Unable to import picamera")
     pass
 
+RECOGNIZE = 'recognize'
+
 
 def snapshot(filename):
     try:
@@ -45,18 +47,18 @@ def callback(client, user_data, message):
             logging.debug("command: {}".format(cmd))
             filename = "{}.jpg".format(args.source)
             if snapshot(filename) and args.web_bucket is not None:
-                awsiot.mv_to_s3(filename, args.web_bucket,tags)
+                awsiot.mv_to_s3(filename, args.web_bucket, tags)
         elif cmd == 'recording':
             logging.debug("command: {}".format(cmd))
-        elif cmd == 'recognize':
+        elif cmd == RECOGNIZE:
             logging.debug("command: {}".format(cmd))
             filename = "{}-{}.jpg".format(args.source, awsiot.file_timestamp_string(now))
             if snapshot(filename) and args.bucket is not None:
                 awsiot.mv_to_s3(filename, args.bucket)
                 result = awsiot.recognize(filename, args.bucket)
-                logging.info("recognize result: {}".format(result))
+                logging.info("{}: {}".format(RECOGNIZE, result))
                 if "Labels" in result:
-                    tags['recognize'] = awsiot.tagify(result['Labels'], 'Name')
+                    tags[RECOGNIZE] = awsiot.tagify(result['Labels'], 'Name')
                     awsiot.s3_tag(filename, args.bucket, tags)
         else:
             logging.warning('Unrecognized command: {}'.format(cmd))
