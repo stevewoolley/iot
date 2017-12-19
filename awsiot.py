@@ -86,6 +86,7 @@ def s3_tag(file_name, bucket, tags=None, s3=None):
         t = []
         for k, v in tags.items():
             t.append({'Key': k, 'Value': v})
+        logging.warning('XXX:'.format(t))
         s3.meta.client.put_object_tagging(Bucket=bucket, Key=file_name, Tagging={'TagSet': t})
 
 
