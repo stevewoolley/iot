@@ -66,7 +66,7 @@ def callback(client, user_data, message):
             logging.debug("command: {}".format(cmd))
             filename = "{}-{}.h264".format(args.source, awsiot.file_timestamp_string(now))
             if recording(filename) and args.archive_bucket is not None:
-                awsiot.mv_to_s3(filename, args.bucket, tags)
+                awsiot.mv_to_s3(filename, args.archive_bucket, tags)
         elif cmd == RECOGNIZE:
             logging.debug("command: {}".format(cmd))
             filename = "{}-{}.jpg".format(args.source, awsiot.file_timestamp_string(now))
