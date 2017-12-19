@@ -35,40 +35,29 @@ def callback(client, user_data, message):
     now = datetime.datetime.now()
     if len(commands) > 0:
         cmd = commands.pop(0)
+        tags = {'created': awsiot.timestamp_string(now), 'source': args.source}
         if cmd == 'workspace':
             logging.debug("command: {}".format(cmd))
             filename = "{}-{}.jpg".format(args.source, awsiot.file_timestamp_string(now))
             if snapshot(filename) and args.bucket is not None:
-                awsiot.mv_to_s3(filename,
-                                args.bucket,
-                                {'Created': awsiot.timestamp_string(now), 'Source': args.source}
-                                )
+                awsiot.mv_to_s3(filename, args.bucket, tags)
         elif cmd == 'snapshot':
             logging.debug("command: {}".format(cmd))
             filename = "{}.jpg".format(args.source)
             if snapshot(filename) and args.web_bucket is not None:
-                awsiot.mv_to_s3(filename,
-                                args.web_bucket,
-                                {'Created': awsiot.timestamp_string(now), 'Source': args.source}
-                                )
+                awsiot.mv_to_s3(filename, args.web_bucket,tags)
         elif cmd == 'recording':
             logging.debug("command: {}".format(cmd))
         elif cmd == 'recognize':
             logging.debug("command: {}".format(cmd))
             filename = "{}-{}.jpg".format(args.source, awsiot.file_timestamp_string(now))
             if snapshot(filename) and args.bucket is not None:
-                awsiot.mv_to_s3(filename,
-                                args.bucket)
+                awsiot.mv_to_s3(filename, args.bucket)
                 result = awsiot.recognize(filename, args.bucket)
                 logging.info("recognize result: {}".format(result))
                 if "Labels" in result:
-                    awsiot.s3_tag(filename,
-                                  args.bucket,
-                                  {'Created': awsiot.timestamp_string(now),
-                                   'Source': args.source,
-                                   'Recognize': awsiot.tagify(result['Labels'], 'Name')
-                                   }
-                                  )
+                    tags['recognize'] = awsiot.tagify(result['Labels'], 'Name')
+                    awsiot.s3_tag(filename, args.bucket, tags)
         else:
             logging.warning('Unrecognized command: {}'.format(cmd))
     else:
