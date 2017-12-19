@@ -30,7 +30,15 @@ def file_timestamp_string(timestamp=datetime.datetime.now()):
 
 
 def timestamp_string(timestamp=datetime.datetime.now()):
-    return timestamp.strftime(FILE_DATE_FORMAT)
+    return timestamp.strftime(DATE_FORMAT)
+
+
+def stringify(arr, field):
+    o = []
+    for i in arr:
+        if field in i:
+            o.append(i[field])
+    return ','.join(o)
 
 
 def int_val(s):
@@ -71,9 +79,9 @@ def is_locked(filepath):
     return locked
 
 
-def cp_to_s3(file_name, bucket, tags=None):
-    s3 = boto3.resource('s3')
-    s3.meta.client.upload_file(file_name, bucket, file_name)
+def s3_tag(file_name, bucket, tags=None, s3=None):
+    if s3 is None:
+        s3 = boto3.resource('s3')
     if tags is not None:
         t = []
         for k, v in tags.items():
@@ -81,8 +89,15 @@ def cp_to_s3(file_name, bucket, tags=None):
         s3.meta.client.put_object_tagging(Bucket=bucket, Key=file_name, Tagging={'TagSet': t})
 
 
-def mv_to_s3(file_name, bucket, tags=None):
-    cp_to_s3(file_name, bucket, tags)
+def cp_to_s3(file_name, bucket, tags=None, s3=None):
+    if s3 is None:
+        s3 = boto3.resource('s3')
+    s3.meta.client.upload_file(file_name, bucket, file_name)
+    s3_tag(file_name, bucket, tags, s3)
+
+
+def mv_to_s3(file_name, bucket, tags=None, s3=None):
+    cp_to_s3(file_name, bucket, tags, s3)
     try:
         os.remove(file_name)
     except OSError, e:
