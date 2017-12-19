@@ -27,6 +27,19 @@ def snapshot(filename):
         return False
 
 
+def recording(filename, max_length=60, width=640, height=480, quality=23):
+    try:
+        logging.info("recording: {}".format(filename))
+        camera.resolution = (width, height)
+        camera.start_recording(filename, format='h264', quality=quality)
+        camera.wait_recording(max_length)
+        camera.stop_recording()
+        return True
+    except Exception as e:
+        logging.error("snapshot failed {}".format(e.message))
+        return False
+
+
 def callback(client, user_data, message):
     try:
         msg = json.loads(message.payload)
@@ -50,6 +63,9 @@ def callback(client, user_data, message):
                 awsiot.mv_to_s3(filename, args.web_bucket, tags)
         elif cmd == 'recording':
             logging.debug("command: {}".format(cmd))
+            filename = "{}-{}.h264".format(args.source, awsiot.file_timestamp_string(now))
+            if recording(filename) and args.archive_bucket is not None:
+                awsiot.mv_to_s3(filename, args.bucket, tags)
         elif cmd == RECOGNIZE:
             logging.debug("command: {}".format(cmd))
             filename = "{}-{}.jpg".format(args.source, awsiot.file_timestamp_string(now))
@@ -74,6 +90,7 @@ if __name__ == "__main__":
     parser.add_argument("-s", "--source", help="source name", default=platform.node().split('.')[0])
     parser.add_argument("-b", "--bucket", help="S3 bucket")
     parser.add_argument("-w", "--web_bucket", help="S3 bucket for web storage")
+    parser.add_argument("-a", "--archive_bucket", help="S3 bucket for archive")
     args = parser.parse_args()
 
     logging.basicConfig(filename=awsiot.LOG_FILE, level=args.log_level, format=awsiot.LOG_FORMAT)
