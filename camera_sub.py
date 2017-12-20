@@ -74,7 +74,7 @@ def callback(client, user_data, message):
             logging.debug("command: {}".format(cmd))
             filename = "{}-{}.jpg".format(args.source, awsiot.file_timestamp_string(now))
             if snapshot(filename) and args.bucket is not None:
-                awsiot.mv_to_s3(filename, args.bucket)
+                awsiot.mv_to_s3(filename, args.bucket, tags)
                 if awsiot.recognize(filename, args.bucket):
                     awsiot.identify(args.collection, filename, args.bucket)
         else:

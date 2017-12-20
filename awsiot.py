@@ -102,8 +102,8 @@ def is_locked(filepath):
 def s3_tag(file_name, bucket, tags=None, s3=None):
     if s3 is None:
         s3 = boto3.resource('s3')
+    t = s3.meta.client.get_object_tagging(Bucket=bucket, Key=file_name)['TagSet']
     if tags is not None:
-        t = []
         for k, v in tags.items():
             t.append({'Key': k.strip(), 'Value': v.strip()})
         s3.meta.client.put_object_tagging(Bucket=bucket, Key=file_name, Tagging={'TagSet': t})
