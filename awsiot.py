@@ -5,6 +5,7 @@ import json
 import argparse
 import datetime
 import boto3
+from boto3.dynamodb.conditions import Key
 from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
 from AWSIoTPythonSDK.core.greengrass.discovery.providers import DiscoveryInfoProvider
 from AWSIoTPythonSDK.core.protocol.connection.cores import ProgressiveBackOffCore
@@ -129,7 +130,26 @@ def rm(file_name):
 
 def recognize(file_name, bucket, confidence=75):
     client = boto3.client('rekognition')
-    return client.detect_labels(Image={'S3Object': {'Bucket': bucket, 'Name': file_name}}, MinConfidence=confidence)
+    result = client.detect_labels(Image={'S3Object': {'Bucket': bucket, 'Name': file_name}}, MinConfidence=confidence)
+    if "Labels" in result:
+        s3_tag(file_name, bucket, {'recognize': tagify(result['Labels'], 'Name')})
+
+
+def identify(collection, file_name, bucket):
+    client = boto3.client('rekognition')
+    result = client.search_faces_by_image(Image={"S3Object": {"Bucket": bucket, "Name": file_name, }},
+                                          CollectionId=collection)
+    table = boto3.resource('dynamodb').Table('faces')
+    hits = {}
+    for i in result['FaceMatches']:
+        record = table.query(KeyConditionExpression=Key('id').eq(i['Face']['FaceId']))['Items']
+        if len(record) > 0:
+            if record[0]['name'] in hits:
+                hits[record[0]['name']] += 1
+            else:
+                hits[record[0]['name']] = 1
+    if len(hits) > 0:
+        s3_tag(file_name, bucket, {'identities', '+'.join(hits)})
 
 
 def iot_thing_topic(thing):

@@ -75,11 +75,8 @@ def callback(client, user_data, message):
             filename = "{}-{}.jpg".format(args.source, awsiot.file_timestamp_string(now))
             if snapshot(filename) and args.bucket is not None:
                 awsiot.mv_to_s3(filename, args.bucket)
-                result = awsiot.recognize(filename, args.bucket)
-                logging.info("{}: {}".format(RECOGNIZE, result))
-                if "Labels" in result:
-                    tags[RECOGNIZE] = awsiot.tagify(result['Labels'], 'Name')
-                    awsiot.s3_tag(filename, args.bucket, tags)
+                awsiot.recognize(filename, args.bucket)
+                awsiot.identify('snerted', filename, args.bucket)
         else:
             logging.warning('Unrecognized command: {}'.format(cmd))
     else:
