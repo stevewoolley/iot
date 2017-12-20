@@ -103,6 +103,7 @@ def s3_tag(file_name, bucket, tags=None, s3=None):
     if s3 is None:
         s3 = boto3.resource('s3')
     if tags is not None:
+        logging.warning('foo: {}'.format(tags))
         t = []
         for k, v in tags.items():
             t.append({'Key': k.strip(), 'Value': v.strip()})
