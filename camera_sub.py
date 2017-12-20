@@ -75,8 +75,8 @@ def callback(client, user_data, message):
             filename = "{}-{}.jpg".format(args.source, awsiot.file_timestamp_string(now))
             if snapshot(filename) and args.bucket is not None:
                 awsiot.mv_to_s3(filename, args.bucket)
-                awsiot.recognize(filename, args.bucket)
-                awsiot.identify('snerted', filename, args.bucket)
+                if awsiot.recognize(filename, args.bucket):
+                    awsiot.identify(args.collection, filename, args.bucket)
         else:
             logging.warning('Unrecognized command: {}'.format(cmd))
     else:
@@ -92,6 +92,7 @@ if __name__ == "__main__":
     parser.add_argument("-b", "--bucket", help="S3 bucket")
     parser.add_argument("-w", "--web_bucket", help="S3 bucket for web storage")
     parser.add_argument("-a", "--archive_bucket", help="S3 bucket for archive")
+    parser.add_argument("-d", "--collection", help="rekognition collection", default='snerted')
     args = parser.parse_args()
 
     logging.basicConfig(filename=awsiot.LOG_FILE, level=args.log_level, format=awsiot.LOG_FORMAT)

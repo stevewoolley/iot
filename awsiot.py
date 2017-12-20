@@ -103,7 +103,6 @@ def s3_tag(file_name, bucket, tags=None, s3=None):
     if s3 is None:
         s3 = boto3.resource('s3')
     if tags is not None:
-        logging.warning('foo: {}'.format(tags))
         t = []
         for k, v in tags.items():
             t.append({'Key': k.strip(), 'Value': v.strip()})
@@ -130,10 +129,15 @@ def rm(file_name):
 
 
 def recognize(file_name, bucket, confidence=75):
+    has_person = False
     client = boto3.client('rekognition')
     result = client.detect_labels(Image={'S3Object': {'Bucket': bucket, 'Name': file_name}}, MinConfidence=confidence)
     if "Labels" in result:
-        s3_tag(file_name, bucket, {'recognize': tagify(result['Labels'], 'Name')})
+        x = tagify(result['Labels'], 'Name')
+        s3_tag(file_name, bucket, {'recognize': x})
+        if 'People' in x.split('+') or 'Person' in x.split('+'):
+            has_person = True
+    return has_person
 
 
 def identify(collection, file_name, bucket):
@@ -151,7 +155,7 @@ def identify(collection, file_name, bucket):
                 else:
                     hits[record[0]['name']] = 1
         if len(hits) > 0:
-            s3_tag(file_name, bucket, {'identities', '+'.join(hits)})
+            s3_tag(file_name, bucket, {'identities': '+'.join(hits)})
     except Exception as e:
         logging.warning("identify error: {}".format(e.message))
 
