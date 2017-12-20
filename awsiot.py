@@ -137,19 +137,22 @@ def recognize(file_name, bucket, confidence=75):
 
 def identify(collection, file_name, bucket):
     client = boto3.client('rekognition')
-    result = client.search_faces_by_image(Image={"S3Object": {"Bucket": bucket, "Name": file_name, }},
-                                          CollectionId=collection)
-    table = boto3.resource('dynamodb').Table('faces')
-    hits = {}
-    for i in result['FaceMatches']:
-        record = table.query(KeyConditionExpression=Key('id').eq(i['Face']['FaceId']))['Items']
-        if len(record) > 0:
-            if record[0]['name'] in hits:
-                hits[record[0]['name']] += 1
-            else:
-                hits[record[0]['name']] = 1
-    if len(hits) > 0:
-        s3_tag(file_name, bucket, {'identities', '+'.join(hits)})
+    try:
+        result = client.search_faces_by_image(Image={"S3Object": {"Bucket": bucket, "Name": file_name, }},
+                                              CollectionId=collection)
+        table = boto3.resource('dynamodb').Table('faces')
+        hits = {}
+        for i in result['FaceMatches']:
+            record = table.query(KeyConditionExpression=Key('id').eq(i['Face']['FaceId']))['Items']
+            if len(record) > 0:
+                if record[0]['name'] in hits:
+                    hits[record[0]['name']] += 1
+                else:
+                    hits[record[0]['name']] = 1
+        if len(hits) > 0:
+            s3_tag(file_name, bucket, {'identities', '+'.join(hits)})
+    except Exception as e:
+        logging.warning("identify error: {}".format(e.message))
 
 
 def iot_thing_topic(thing):
