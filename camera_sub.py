@@ -52,11 +52,11 @@ def callback(client, user_data, message):
     if len(commands) > 0:
         cmd = commands.pop(0)
         tags = {'created': awsiot.timestamp_string(now), 'source': args.source}
-        if cmd == 'workspace':
+        if cmd == 'archive':
             logging.debug("command: {}".format(cmd))
             filename = "{}-{}.jpg".format(args.source, awsiot.file_timestamp_string(now))
-            if snapshot(filename) and args.bucket is not None:
-                awsiot.mv_to_s3(filename, args.bucket, tags)
+            if snapshot(filename) and args.archive_bucket is not None:
+                awsiot.mv_to_s3(filename, args.archive_bucket, tags)
         elif cmd == 'snapshot':
             logging.debug("command: {}".format(cmd))
             filename = "{}.jpg".format(args.source)
@@ -73,8 +73,8 @@ def callback(client, user_data, message):
         elif cmd == RECOGNIZE:
             logging.debug("command: {}".format(cmd))
             filename = "{}-{}.jpg".format(args.source, awsiot.file_timestamp_string(now))
-            if snapshot(filename) and args.bucket is not None:
-                awsiot.mv_to_s3(filename, args.bucket, tags, args.confidence, args.collection)
+            if snapshot(filename) and args.workspace_bucket is not None:
+                awsiot.mv_to_s3(filename, args.workspace_bucket, tags)
         else:
             logging.warning('Unrecognized command: {}'.format(cmd))
     else:
@@ -87,11 +87,9 @@ if __name__ == "__main__":
     parser.add_argument("-y", "--height", help="camera resolution height", type=int, default=1080)
     parser.add_argument("-z", "--rotation", help="camera rotation", type=int, default=0)
     parser.add_argument("-s", "--source", help="source name", default=platform.node().split('.')[0])
-    parser.add_argument("-b", "--bucket", help="S3 bucket")
     parser.add_argument("-w", "--web_bucket", help="S3 bucket for web storage")
     parser.add_argument("-a", "--archive_bucket", help="S3 bucket for archive")
-    parser.add_argument("-d", "--collection", help="rekognition collection", default='snerted')
-    parser.add_argument("-j", "--confidence", help="rekognition confidence", type=int, default=75)
+    parser.add_argument("-j", "--workspace_bucket", help="S3 bucket for workspace")
     args = parser.parse_args()
 
     logging.basicConfig(filename=awsiot.LOG_FILE, level=args.log_level, format=awsiot.LOG_FORMAT)

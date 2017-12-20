@@ -109,33 +109,32 @@ def s3_tag(file_name, bucket, tags=None, s3=None):
         s3.meta.client.put_object_tagging(Bucket=bucket, Key=file_name, Tagging={'TagSet': t})
 
 
-def mv_to_s3(file_name, bucket, tags=None, confidence=None, collection=None):
+def mv_to_s3(file_name, bucket, tags=None):
     s3 = boto3.resource('s3')
     s3.meta.client.upload_file(file_name, bucket, file_name)
-    if collection is not None:
-        client = boto3.client('rekognition')
-        result = client.detect_labels(Image={'S3Object': {'Bucket': bucket, 'Name': file_name}},
-                                      MinConfidence=confidence)
-        if "Labels" in result:
-            tags['recognize'] = tagify(result['Labels'], 'Name')
-            if 'People' in tags['recognize'].split('+') or 'Person' in tags['recognize'].split('+'):
-                try:
-                    result = client.search_faces_by_image(Image={"S3Object": {"Bucket": bucket, "Name": file_name, }},
-                                                          CollectionId=collection)
-                    table = boto3.resource('dynamodb').Table('faces')
-                    hits = {}
-                    for i in result['FaceMatches']:
-                        record = table.query(KeyConditionExpression=Key('id').eq(i['Face']['FaceId']))['Items']
-                        if len(record) > 0:
-                            if record[0]['name'] in hits:
-                                hits[record[0]['name']] += 1
-                            else:
-                                hits[record[0]['name']] = 1
-                    if len(hits) > 0:
-                        tags['identities'] = '+'.join(hits)
-                except Exception as e:
-                    logging.warning("identify error: {}".format(e.message))
-
+    # if collection is not None:
+    #     client = boto3.client('rekognition')
+    #     result = client.detect_labels(Image={'S3Object': {'Bucket': bucket, 'Name': file_name}},
+    #                                   MinConfidence=confidence)
+    #     if "Labels" in result:
+    #         tags['recognize'] = tagify(result['Labels'], 'Name')
+    #         if 'People' in tags['recognize'].split('+') or 'Person' in tags['recognize'].split('+'):
+    #             try:
+    #                 result = client.search_faces_by_image(Image={"S3Object": {"Bucket": bucket, "Name": file_name, }},
+    #                                                       CollectionId=collection)
+    #                 table = boto3.resource('dynamodb').Table('faces')
+    #                 hits = {}
+    #                 for i in result['FaceMatches']:
+    #                     record = table.query(KeyConditionExpression=Key('id').eq(i['Face']['FaceId']))['Items']
+    #                     if len(record) > 0:
+    #                         if record[0]['name'] in hits:
+    #                             hits[record[0]['name']] += 1
+    #                         else:
+    #                             hits[record[0]['name']] = 1
+    #                 if len(hits) > 0:
+    #                     tags['identities'] = '+'.join(hits)
+    #             except Exception as e:
+    #                 logging.warning("identify error: {}".format(e.message))
     t = []
     if tags is not None:
         for k, v in tags.items():
