@@ -6,6 +6,11 @@ import logging
 import platform
 import psutil
 import datetime
+try:
+    from gpiozero import *
+except ImportError:
+    logging.error("Unable to import gpiozero")
+    pass
 
 NET_INTERFACES = ['en0', 'en1', 'en2', 'en3', 'wlan0', 'wlan1', 'eth0', 'eth1']
 
@@ -41,6 +46,7 @@ if __name__ == "__main__":
         properties["release"] = platform.mac_ver()[0]
     elif platform.machine().startswith('arm') and platform.system() == 'Linux':  # raspberry pi
         properties["distribution"] = "{} {}".format(platform.dist()[0], platform.dist()[1])
+        properties["hardware"] = "Pi Model {} V{}".format(pi_info().model, pi_info().pcb_revision)
     properties["hostname"] = platform.node()
     properties["machine"] = platform.machine()
     properties["system"] = platform.system()
