@@ -5,6 +5,7 @@ import awsiot
 import logging
 import sys
 import time
+
 try:
     from gpiozero import DigitalOutputDevice
 except ImportError:
@@ -38,22 +39,24 @@ def level_callback(client, user_data, message):
     except ValueError:
         msg = None
     logging.debug("received {} {}".format(message.topic, msg))
-    commands = filter(None, message.topic.replace(args.topic, '').split('/'))
-    if len(commands) > 0:
-        cmd = commands.pop(0)
-        if cmd in awsiot.TOPIC_STATUS_ON:
-            device(-1)
-        elif cmd in awsiot.TOPIC_STATUS_OFF:
-            device(0)
-        elif cmd in awsiot.TOPIC_STATUS_PULSE:
+    for x in args.topic:
+        if message.topic.startswith(x):
+            commands = filter(None, message.topic.replace(x, '').split('/'))
             if len(commands) > 0:
                 cmd = commands.pop(0)
-                if awsiot.int_val(cmd) is not None:
-                    device(awsiot.int_val(cmd))
-            else:
-                device(args.default)
-        else:
-            logging.warning('Device command ignored: {}'.format(cmd))
+                if cmd in awsiot.TOPIC_STATUS_ON:
+                    device(-1)
+                elif cmd in awsiot.TOPIC_STATUS_OFF:
+                    device(0)
+                elif cmd in awsiot.TOPIC_STATUS_PULSE:
+                    if len(commands) > 0:
+                        cmd = commands.pop(0)
+                        if awsiot.int_val(cmd) is not None:
+                            device(awsiot.int_val(cmd))
+                    else:
+                        device(args.default)
+                else:
+                    logging.warning('Device command ignored: {}'.format(cmd))
 
 
 if __name__ == "__main__":
@@ -71,10 +74,12 @@ if __name__ == "__main__":
     if args.pin is not None:
         output = DigitalOutputDevice(args.pin)
 
-    subscriber.subscribe(args.topic, callback)
-    time.sleep(2)  # pause
-    subscriber.subscribe("{}/#".format(args.topic), level_callback)
-    time.sleep(2)  # pause
+    if args.topic is not None and len(args.topic) > 0:
+        for t in args.topics:
+            subscriber.subscribe(t, callback)
+            time.sleep(2)  # pause
+            subscriber.subscribe("{}/#".format(t), level_callback)
+            time.sleep(2)  # pause
 
     # Loop forever
     try:

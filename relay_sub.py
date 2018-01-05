@@ -32,8 +32,7 @@ def callback(client, user_data, message):
     except ValueError:
         msg = None
     logging.debug("received {} {}".format(message.topic, msg))
-    if message.topic == args.topic:
-        device(args.default)
+    device(args.default)
 
 
 def level_callback(client, user_data, message):
@@ -78,10 +77,12 @@ if __name__ == "__main__":
     if args.pin is not None:
         output = OutputDevice(args.pin, args.active_high, args.initial_value)
 
-    subscriber.subscribe(args.topic, callback)
-    time.sleep(2)  # pause
-    subscriber.subscribe("{}/+".format(args.topic), level_callback)
-    time.sleep(2)  # pause
+    if args.topic is not None and len(args.topic) > 0:
+        for t in args.topics:
+            subscriber.subscribe(t, callback)
+            time.sleep(2)  # pause
+            subscriber.subscribe("{}/+".format(t), level_callback)
+            time.sleep(2)  # pause
 
     # Loop forever
     try:

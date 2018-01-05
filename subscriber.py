@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import argparse
 import json
 import awsiot
 import logging
@@ -24,8 +23,9 @@ if __name__ == "__main__":
 
     subscriber = awsiot.Subscriber(args.endpoint, args.rootCA, args.cert, args.key, args.thing, args.groupCA)
 
-    subscriber.subscribe(args.topic, my_callback)
-    time.sleep(2)  # pause
+    for t in args.topics:
+        subscriber.subscribe(t, my_callback)
+        time.sleep(2)  # pause
 
     # Loop forever
     try:

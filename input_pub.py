@@ -4,13 +4,18 @@ import json
 import awsiot
 import logging
 from signal import pause
-from gpiozero import Button
+try:
+    from gpiozero import Button
+except ImportError:
+    logging.error("Unable to import gpiozero")
+    pass
 
 
 def pub(topic, value):
-    if args.topic is not None:
-        publisher.publish(topic,
-                          json.dumps({args.source: value, awsiot.MESSAGE: "{} {}".format(args.source, value)}))
+    if topic is not None and len(topic) > 0:
+        for t in topic:
+            publisher.publish(t,
+                              json.dumps({args.source: value, awsiot.MESSAGE: "{} {}".format(args.source, value)}))
     if args.thing is not None:
         publisher.publish(awsiot.iot_thing_topic(args.thing), awsiot.iot_payload(awsiot.REPORTED, {args.source: value}))
 
@@ -42,10 +47,10 @@ if __name__ == "__main__":
     parser.add_argument("-s", "--source", help="Source", required=True)
     parser.add_argument("-y", "--high_value", help="high value", default=1)
     parser.add_argument("-z", "--low_value", help="low value", default=0)
-    parser.add_argument("-o", "--low_topic", help="Low value topic (defaults to high_value if not assigned")
+    parser.add_argument("-o", "--low_topic", nargs='*', help="Low topic (defaults to topic if not assigned")
     args = parser.parse_args()
     # default low_topic to topic if not defined
-    if args.low_topic is None:
+    if args.low_topic is None or len(args.low_topic) == 0:
         args.low_topic = args.topic
 
     logging.basicConfig(filename=awsiot.LOG_FILE, level=args.log_level, format=awsiot.LOG_FORMAT)

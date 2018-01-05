@@ -12,8 +12,9 @@ SENSORS = [DHT11, DHT22, AM2302]
 
 
 def pub(temp, humid):
-    if args.topic is not None:
-        publisher.publish(args.topic,
+    if args.topic is not None and len(args.topic) > 0:
+        for t in args.topic:
+            publisher.publish(t,
                           json.dumps({"temperature": temp, "humidity": humid,
                                       awsiot.MESSAGE: "temperature: {} humidity: {}".format(temp, humid)}))
     if args.thing is not None:

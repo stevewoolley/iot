@@ -47,38 +47,41 @@ def callback(client, user_data, message):
     except ValueError:
         msg = None
     logging.debug("received {} {}".format(message.topic, msg))
-    commands = filter(None, message.topic.replace(args.topic, '').split('/'))
-    now = datetime.datetime.now()
-    if len(commands) > 0:
-        cmd = commands.pop(0)
-        tags = {'created': awsiot.timestamp_string(now), 'source': args.source}
-        if cmd == 'archive':
-            logging.debug("command: {}".format(cmd))
-            filename = "{}-{}.jpg".format(args.source, awsiot.file_timestamp_string(now))
-            if snapshot(filename) and args.archive_bucket is not None:
-                awsiot.mv_to_s3(filename, args.archive_bucket, tags)
-        elif cmd == 'snapshot':
-            logging.debug("command: {}".format(cmd))
-            filename = "{}.jpg".format(args.source)
-            if snapshot(filename) and args.web_bucket is not None:
-                awsiot.mv_to_s3(filename, args.web_bucket, tags)
-        elif cmd == 'recording':
-            logging.debug("command: {}".format(cmd))
-            filename_h264 = "{}-{}.h264".format(args.source, awsiot.file_timestamp_string(now))
-            filename_mp4 = "{}-{}.mp4".format(args.source, awsiot.file_timestamp_string(now))
-            if recording(filename_h264) and args.archive_bucket is not None:
-                awsiot.os_execute('MP4Box -add {} {}'.format(filename_h264, filename_mp4))
-                awsiot.mv_to_s3(filename_mp4, args.archive_bucket, tags)
-                awsiot.rm(filename_h264)
-        elif cmd == RECOGNIZE:
-            logging.debug("command: {}".format(cmd))
-            filename = "{}-{}.jpg".format(args.source, awsiot.file_timestamp_string(now))
-            if snapshot(filename) and args.workspace_bucket is not None:
-                awsiot.mv_to_s3(filename, args.workspace_bucket, tags)
-        else:
-            logging.warning('Unrecognized command: {}'.format(cmd))
-    else:
-        logging.warning("No commands")
+
+    for x in args.topic:
+        if message.topic.startswith(x):
+            commands = filter(None, message.topic.replace(x, '').split('/'))
+            now = datetime.datetime.now()
+            if len(commands) > 0:
+                cmd = commands.pop(0)
+                tags = {'created': awsiot.timestamp_string(now), 'source': args.source}
+                if cmd == 'archive':
+                    logging.debug("command: {}".format(cmd))
+                    filename = "{}-{}.jpg".format(args.source, awsiot.file_timestamp_string(now))
+                    if snapshot(filename) and args.archive_bucket is not None:
+                        awsiot.mv_to_s3(filename, args.archive_bucket, tags)
+                elif cmd == 'snapshot':
+                    logging.debug("command: {}".format(cmd))
+                    filename = "{}.jpg".format(args.source)
+                    if snapshot(filename) and args.web_bucket is not None:
+                        awsiot.mv_to_s3(filename, args.web_bucket, tags)
+                elif cmd == 'recording':
+                    logging.debug("command: {}".format(cmd))
+                    filename_h264 = "{}-{}.h264".format(args.source, awsiot.file_timestamp_string(now))
+                    filename_mp4 = "{}-{}.mp4".format(args.source, awsiot.file_timestamp_string(now))
+                    if recording(filename_h264) and args.archive_bucket is not None:
+                        awsiot.os_execute('MP4Box -add {} {}'.format(filename_h264, filename_mp4))
+                        awsiot.mv_to_s3(filename_mp4, args.archive_bucket, tags)
+                        awsiot.rm(filename_h264)
+                elif cmd == RECOGNIZE:
+                    logging.debug("command: {}".format(cmd))
+                    filename = "{}-{}.jpg".format(args.source, awsiot.file_timestamp_string(now))
+                    if snapshot(filename) and args.workspace_bucket is not None:
+                        awsiot.mv_to_s3(filename, args.workspace_bucket, tags)
+                else:
+                    logging.warning('Unrecognized command: {}'.format(cmd))
+            else:
+                logging.warning("No commands")
 
 
 if __name__ == "__main__":
@@ -100,8 +103,10 @@ if __name__ == "__main__":
     camera.resolution = (args.width, args.height)
     camera.rotation = args.rotation
 
-    subscriber.subscribe("{}/#".format(args.topic), callback)
-    time.sleep(2)  # pause
+    if args.topic is not None and len(args.topic) > 0:
+        for t in args.topics:
+            subscriber.subscribe("{}/#".format(t), callback)
+            time.sleep(2)  # pause
 
     # Loop forever
     try:
