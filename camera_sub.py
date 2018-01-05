@@ -104,7 +104,7 @@ if __name__ == "__main__":
     camera.rotation = args.rotation
 
     if args.topic is not None and len(args.topic) > 0:
-        for t in args.topics:
+        for t in args.topic:
             subscriber.subscribe("{}/#".format(t), callback)
             time.sleep(2)  # pause
 

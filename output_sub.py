@@ -75,7 +75,7 @@ if __name__ == "__main__":
         output = DigitalOutputDevice(args.pin)
 
     if args.topic is not None and len(args.topic) > 0:
-        for t in args.topics:
+        for t in args.topic:
             subscriber.subscribe(t, callback)
             time.sleep(2)  # pause
             subscriber.subscribe("{}/#".format(t), level_callback)
