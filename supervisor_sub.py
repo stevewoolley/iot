@@ -26,7 +26,7 @@ def callback(client, user_data, message):
                 else:
                     logging.warning('Unrecognized command: {}'.format(cmd))
             else:
-                logging.warning("No commands")
+                logging.warning("No commands: {}".format(message.topic))
 
 
 if __name__ == "__main__":
