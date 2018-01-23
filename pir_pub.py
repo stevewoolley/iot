@@ -28,7 +28,8 @@ def motion():
 
 def no_motion():
     logging.info("{} {} {}".format(args.source, args.pin, args.low_value))
-    pub(args.low_topic, args.low_value)
+    if args.low_topic:
+        pub(args.low_topic, args.low_value)
 
 
 if __name__ == "__main__":
@@ -49,11 +50,8 @@ if __name__ == "__main__":
     parser.add_argument("-s", "--source", help="Source", required=True)
     parser.add_argument("-y", "--high_value", help="high value", default=1)
     parser.add_argument("-z", "--low_value", help="low value", default=0)
-    parser.add_argument("-o", "--low_topic", nargs='*', help="Low topic (defaults to topic if not assigned")
+    parser.add_argument("-o", "--low_topic", nargs='*', help="Low topic")
     args = parser.parse_args()
-    # default low_topic to topic if not defined
-    if args.low_topic is None or len(args.low_topic) == 0:
-        args.low_topic = args.topic
 
     logging.basicConfig(filename=awsiot.LOG_FILE, level=args.log_level, format=awsiot.LOG_FORMAT)
 
