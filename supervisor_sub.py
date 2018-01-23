@@ -14,7 +14,7 @@ def callback(client, user_data, message):
         msg = json.loads(message.payload)
     except ValueError:
         msg = None
-    logging.warning("received {} {}".format(message.topic, msg))
+    logging.debug("received {} {}".format(message.topic, msg))
     for x in args.topic:
         if message.topic.startswith(x):
             commands = filter(None, message.topic.replace(x, '').split('/'))
@@ -44,7 +44,7 @@ if __name__ == "__main__":
 
     if args.topic is not None and len(args.topic) > 0:
         for t in args.topic:
-            subscriber.subscribe(t, callback)
+            subscriber.subscribe("{}/#".format(t), callback)
             time.sleep(2)  # pause
 
     # Loop forever
