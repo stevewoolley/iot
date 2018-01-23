@@ -22,7 +22,7 @@ def callback(client, user_data, message):
                 cmd = commands.pop(0)
                 if cmd == 'getAllProcessInfo':
                     logging.debug("command: {}".format(cmd))
-                    logging.info("getAllProcessInfo {}", proxy.supervisor.getAllProcessInfo())
+                    logging.info("getAllProcessInfo {}".format(proxy.supervisor.getAllProcessInfo()))
                 else:
                     logging.warning('Unrecognized command: {}'.format(cmd))
             else:
