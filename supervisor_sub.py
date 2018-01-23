@@ -41,7 +41,7 @@ def callback(client, user_data, message):
 
 if __name__ == "__main__":
     parser = awsiot.iot_arg_parser()
-    parser.add_argument("-s", "--socket_path", help="socket path", default='/var/run/supervisor.sock')
+    parser.add_argument("--socket_path", help="socket path", default='/var/run/supervisor.sock')
     args = parser.parse_args()
 
     logging.basicConfig(filename=awsiot.LOG_FILE, level=args.log_level, format=awsiot.LOG_FORMAT)
