@@ -22,7 +22,17 @@ def callback(client, user_data, message):
                 cmd = commands.pop(0)
                 if cmd == 'getAllProcessInfo':
                     logging.debug("command: {}".format(cmd))
-                    logging.info("getAllProcessInfo {}".format(proxy.supervisor.getAllProcessInfo()))
+                    results = proxy.supervisor.getAllProcessInfo()
+                    logging.info("getAllProcessInfo {}".format(results))
+                    if args.thing:
+                        supervised = []
+                        for s in results:
+                            supervised.append('{}({})'.format(s['name'], s['statename']))
+                        publisher = awsiot.Publisher(args.endpoint, args.rootCA, args.cert, args.key, args.thing,
+                                                     args.groupCA)
+                        publisher.publish(awsiot.iot_thing_topic(args.thing),
+                                          awsiot.iot_payload(awsiot.REPORTED, {'supervised': ','.join(supervised)}))
+
                 else:
                     logging.warning('Unrecognized command: {}'.format(cmd))
             else:
