@@ -32,7 +32,13 @@ def callback(client, user_data, message):
                                                      args.groupCA)
                         publisher.publish(awsiot.iot_thing_topic(args.thing),
                                           awsiot.iot_payload(awsiot.REPORTED, {'supervised': ', '.join(supervised)}))
-
+                elif cmd == 'startProcess':
+                    logging.debug("command: {}".format(cmd))
+                    cmd = commands.pop(0)
+                    results = proxy.supervisor.startProcess(cmd)
+                elif cmd == 'stopProcess':
+                    logging.debug("command: {}".format(cmd))
+                    results = proxy.supervisor.stopProcess(cmd)
                 else:
                     logging.warning('Unrecognized command: {}'.format(cmd))
             else:
