@@ -27,11 +27,11 @@ def callback(client, user_data, message):
                     if args.thing:
                         supervised = []
                         for s in results:
-                            supervised.append('{}({})'.format(s['name'], s['statename']))
+                            supervised.append('{} ({})'.format(s['name'], s['statename']))
                         publisher = awsiot.Publisher(args.endpoint, args.rootCA, args.cert, args.key, args.thing,
                                                      args.groupCA)
                         publisher.publish(awsiot.iot_thing_topic(args.thing),
-                                          awsiot.iot_payload(awsiot.REPORTED, {'supervised': ','.join(supervised)}))
+                                          awsiot.iot_payload(awsiot.REPORTED, {'supervised': ', '.join(supervised)}))
 
                 else:
                     logging.warning('Unrecognized command: {}'.format(cmd))
