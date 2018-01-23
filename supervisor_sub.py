@@ -38,6 +38,7 @@ def callback(client, user_data, message):
                     results = proxy.supervisor.startProcess(cmd)
                 elif cmd == 'stopProcess':
                     logging.debug("command: {}".format(cmd))
+                    cmd = commands.pop(0)
                     results = proxy.supervisor.stopProcess(cmd)
                 else:
                     logging.warning('Unrecognized command: {}'.format(cmd))
