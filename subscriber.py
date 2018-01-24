@@ -2,30 +2,26 @@
 
 import json
 import awsiot
-import logging
 import sys
 import time
 
 
 def my_callback(client, user_data, message):
-    try:
-        msg = json.loads(message.payload)
-    except ValueError:
-        msg = ""
-    logging.info("received {} {}".format(message.topic, msg))
+    for topic in args.topic:
+        cmd, arg = awsiot.topic_search(topic, message.topic)
+        if cmd:
+            print("FOUND {} {}".format(cmd, arg))
 
 
 if __name__ == "__main__":
     parser = awsiot.iot_arg_parser()
     args = parser.parse_args()
 
-    logging.basicConfig(filename=awsiot.LOG_FILE, level=args.log_level, format=awsiot.LOG_FORMAT)
+    subscriber = awsiot.Subscriber(args.endpoint, args.rootCA, args.cert, args.key)
 
-    subscriber = awsiot.Subscriber(args.endpoint, args.rootCA, args.cert, args.key, args.thing, args.groupCA)
-
-    for t in args.topics:
-        subscriber.subscribe(t, my_callback)
-        time.sleep(2)  # pause
+    if args.topic is not None and len(args.topic) > 0:
+        for t in args.topic:
+            subscriber.subscribe('{}/#'.format(t.split('/').pop(0)), my_callback)
 
     # Loop forever
     try:
