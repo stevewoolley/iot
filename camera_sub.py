@@ -42,46 +42,36 @@ def recording(filename, max_length=60, width=640, height=480, quality=23):
 
 
 def callback(client, user_data, message):
-    try:
-        msg = json.loads(message.payload)
-    except ValueError:
-        msg = None
-    logging.debug("received {} {}".format(message.topic, msg))
-
-    for x in args.topic:
-        if message.topic.startswith(x):
-            commands = filter(None, message.topic.replace(x, '').split('/'))
-            now = datetime.datetime.now()
-            if len(commands) > 0:
-                cmd = commands.pop(0)
-                tags = {'created': awsiot.timestamp_string(now), 'source': args.source}
-                if cmd == 'archive':
-                    logging.debug("command: {}".format(cmd))
-                    filename = "{}-{}.jpg".format(args.thing, awsiot.file_timestamp_string(now))
-                    if snapshot(filename) and args.archive_bucket is not None:
-                        awsiot.mv_to_s3(filename, args.archive_bucket, tags)
-                elif cmd == 'snapshot':
-                    logging.debug("command: {}".format(cmd))
-                    filename = "{}.jpg".format(args.source)
-                    if snapshot(filename) and args.web_bucket is not None:
-                        awsiot.mv_to_s3(filename, args.web_bucket, tags)
-                elif cmd == 'recording':
-                    logging.debug("command: {}".format(cmd))
-                    filename_h264 = "{}-{}.h264".format(args.source, awsiot.file_timestamp_string(now))
-                    filename_mp4 = "{}-{}.mp4".format(args.source, awsiot.file_timestamp_string(now))
-                    if recording(filename_h264) and args.archive_bucket is not None:
-                        awsiot.os_execute('MP4Box -add {} {}'.format(filename_h264, filename_mp4))
-                        awsiot.mv_to_s3(filename_mp4, args.archive_bucket, tags)
-                        awsiot.rm(filename_h264)
-                elif cmd == RECOGNIZE:
-                    logging.debug("command: {}".format(cmd))
-                    filename = "{}-{}.jpg".format(args.source, awsiot.file_timestamp_string(now))
-                    if snapshot(filename) and args.workspace_bucket is not None:
-                        awsiot.mv_to_s3(filename, args.workspace_bucket, tags)
-                else:
-                    logging.warning('Unrecognized command: {}'.format(cmd))
-            else:
-                logging.warning("No commands")
+    logging.debug("received {} {}".format(message.topic, message))
+    for topic in args.topic:
+        cmd, arg = awsiot.topic_search(topic, message.topic)
+        now = datetime.datetime.now()
+        tags = {'created': awsiot.timestamp_string(now), 'source': args.source}
+        if cmd == 'archive':
+            logging.debug("command: {}".format(cmd))
+            filename = "{}-{}.jpg".format(args.source, awsiot.file_timestamp_string(now))
+            if snapshot(filename) and args.archive_bucket is not None:
+                awsiot.mv_to_s3(filename, args.archive_bucket, tags)
+        elif cmd == 'snapshot':
+            logging.debug("command: {}".format(cmd))
+            filename = "{}.jpg".format(args.source)
+            if snapshot(filename) and args.web_bucket is not None:
+                awsiot.mv_to_s3(filename, args.web_bucket, tags)
+        elif cmd == 'recording':
+            logging.debug("command: {}".format(cmd))
+            filename_h264 = "{}-{}.h264".format(args.source, awsiot.file_timestamp_string(now))
+            filename_mp4 = "{}-{}.mp4".format(args.source, awsiot.file_timestamp_string(now))
+            if recording(filename_h264) and args.archive_bucket is not None:
+                awsiot.os_execute('MP4Box -add {} {}'.format(filename_h264, filename_mp4))
+                awsiot.mv_to_s3(filename_mp4, args.archive_bucket, tags)
+                awsiot.rm(filename_h264)
+        elif cmd == RECOGNIZE:
+            logging.debug("command: {}".format(cmd))
+            filename = "{}-{}.jpg".format(args.source, awsiot.file_timestamp_string(now))
+            if snapshot(filename) and args.workspace_bucket is not None:
+                awsiot.mv_to_s3(filename, args.workspace_bucket, tags)
+        else:
+            logging.warning('Unrecognized command: {}'.format(cmd))
 
 
 if __name__ == "__main__":
@@ -105,7 +95,7 @@ if __name__ == "__main__":
 
     if args.topic is not None and len(args.topic) > 0:
         for t in args.topic:
-            subscriber.subscribe("{}/#".format(t), callback)
+            subscriber.subscribe('{}/#'.format(t.split('/').pop(0)), callback)
             time.sleep(2)  # pause
 
     # Loop forever
