@@ -14,10 +14,10 @@ def callback(client, user_data, message):
         msg = json.loads(message.payload)
     except ValueError:
         msg = None
-    logging.info("received {} {}".format(message.topic, msg))
+    logging.info("received {} {}".format(message.topic, message))
     command = message.topic.split('/').pop()
     for topic in args.topic:
-        commands = awsiot.tokenizer(t, '/', command)
+        commands = awsiot.tokenizer(topic, '/', command)
         if message.topic in commands:
             logging.info("FOUND IT {} {}".format(message.topic, msg))
 
