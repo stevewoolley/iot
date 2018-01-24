@@ -29,22 +29,26 @@ TOPIC_STATUS_PULSE = ['blink', 'pulse']
 
 
 def topic_search(topic, input):
-    temp = filter(None, input.replace(topic, '').split('/'))
-    command = None
-    if len(temp) > 0:
-        command = temp.pop(0)
-    arg = None
-    if len(temp) > 0:
-        arg = temp.pop(0)
-    commands = None
-    if command:
-        if arg:
-            commands = tokenizer(topic, '/', '{}/{}'.format(command, arg))
-        else:
-            commands = tokenizer(topic, '/', command)
-    if input in commands:
-        return command, arg
-    return None, None
+    topics = tokenizer(topic, '/')
+    for i in topics:
+        if input.startswith(i):
+            print input
+            temp = filter(None, input.replace(i, '').split('/'))
+            command = None
+            if len(temp) > 0:
+                command = temp.pop(0)
+            arg = None
+            if len(temp) > 0:
+                arg = temp.pop(0)
+            commands = None
+            if command:
+                if arg:
+                    commands = tokenizer(topic, '/', '{}/{}'.format(command, arg))
+                else:
+                    commands = tokenizer(topic, '/', command)
+            if input in commands:
+                return command, arg
+            return None, None
 
 
 def tokenizer(s, c, suffix=None):
