@@ -15,6 +15,10 @@ def callback(client, user_data, message):
     except ValueError:
         msg = None
     logging.info("received {} {}".format(message.topic, msg))
+    for topic in args.topic:
+        if topic in awsiot.tokenizer(t, '/'):
+            logging.info("FOUND IT {} {}".format(message.topic, msg))
+
     # for x in args.topic:
     #     if message.topic.startswith(x):
     #         commands = filter(None, message.topic.replace(x, '').split('/'))
@@ -60,12 +64,9 @@ if __name__ == "__main__":
 
     if args.topic is not None and len(args.topic) > 0:
         for t in args.topic:
-            ary = t.split('/')
-            while len(ary) > 0:
-                prefix = "{}/#".format('/'.join(ary))
-                subscriber.subscribe(prefix, callback)
+            for tok in awsiot.tokenizer(t, '/', '#'):
+                subscriber.subscribe(tok, callback)
                 time.sleep(2)  # pause
-                ary.pop()
 
     # Loop forever
     try:

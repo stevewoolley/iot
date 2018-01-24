@@ -28,6 +28,18 @@ TOPIC_STATUS_TOGGLE = ['toggle']
 TOPIC_STATUS_PULSE = ['blink', 'pulse']
 
 
+def tokenizer(s, c, suffix=None):
+    tmp_list = s.split(c)
+    res = []
+    while len(tmp_list) > 0:
+        if suffix:
+            res.append("{}{}{}".format(c.join(tmp_list), c, suffix))
+        else:
+            res.append("{}".format(c.join(tmp_list)))
+        tmp_list.pop()
+    return res
+
+
 def file_timestamp_string(timestamp=datetime.datetime.now()):
     return timestamp.strftime(FILE_DATE_FORMAT)
 
