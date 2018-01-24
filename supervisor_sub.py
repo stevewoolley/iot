@@ -53,7 +53,7 @@ if __name__ == "__main__":
 
     logging.basicConfig(filename=awsiot.LOG_FILE, level=args.log_level, format=awsiot.LOG_FORMAT)
 
-    subscriber = awsiot.Subscriber(args.endpoint, args.rootCA, args.cert, args.key, args.thing, args.groupCA)
+    subscriber = awsiot.Subscriber(args.endpoint, args.rootCA, args.cert, args.key)
 
     proxy = xmlrpclib.ServerProxy(
         'http://127.0.0.1', transport=supervisor.xmlrpc.SupervisorTransport(

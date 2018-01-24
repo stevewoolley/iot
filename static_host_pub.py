@@ -6,11 +6,8 @@ import logging
 import platform
 import psutil
 import datetime
-try:
-    from gpiozero import *
-except ImportError:
-    logging.error("Unable to import gpiozero")
-    pass
+from gpiozero import *
+
 
 NET_INTERFACES = ['en0', 'en1', 'en2', 'en3', 'wlan0', 'wlan1', 'eth0', 'eth1']
 
@@ -36,7 +33,7 @@ if __name__ == "__main__":
 
     logging.basicConfig(filename=awsiot.LOG_FILE, level=args.log_level, format=awsiot.LOG_FORMAT)
 
-    publisher = awsiot.Publisher(args.endpoint, args.rootCA, args.cert, args.key, args.thing, args.groupCA)
+    publisher = awsiot.Publisher(args.endpoint, args.rootCA, args.cert, args.key)
 
     properties = {}
     mem = psutil.virtual_memory()
@@ -56,6 +53,4 @@ if __name__ == "__main__":
     for iface in NET_INTERFACES:
         properties["{}IpAddress".format(iface)] = get_ip(iface)
 
-    t = awsiot.THING_SHADOW.format(args.thing)
-    payload = json.dumps({awsiot.STATE: {awsiot.REPORTED: properties}})
-    result = publisher.publish(t, payload)
+    publisher.publish(awsiot.iot_thing_topic(args.thing), awsiot.iot_payload(awsiot.REPORTED, properties))

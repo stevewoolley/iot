@@ -5,6 +5,7 @@ import json
 import argparse
 import datetime
 import boto3
+import platform
 from boto3.dynamodb.conditions import Key
 from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
 from AWSIoTPythonSDK.core.greengrass.discovery.providers import DiscoveryInfoProvider
@@ -123,7 +124,7 @@ def mv_to_s3(file_name, bucket, tags=None):
 def rm(file_name):
     try:
         os.remove(file_name)
-    except OSError, e:
+    except OSError as e:
         logging.error("Failed to remove {}: {}".format(e.filename, e.strerror))
 
 
@@ -173,124 +174,30 @@ def iot_arg_parser():
     parser.add_argument("-r", "--rootCA", required=True, help="Root CA file path")
     parser.add_argument("-c", "--cert", required=True, help="Certificate file path")
     parser.add_argument("-k", "--key", required=True, help="Private key file path")
-    parser.add_argument("-n", "--thing", help="Targeted thing name")
-    parser.add_argument("-g", "--groupCA", default=None, help="Group CA file path")
-    parser.add_argument("-m", "--mqttHost", default=None, help="Targeted mqtt host")
     parser.add_argument("-t", "--topic", nargs='*', help="MQTT topic(s)")
     parser.add_argument("-l", "--log_level", help="Log Level", default=logging.INFO)
+    parser.add_argument("--thing", help="thing name", default=platform.node().split('.')[0])
     return parser
 
 
-class Discoverer:
-    def __init__(self, end_point, root_ca_path, certificate_path, private_key_path, group_ca_path):
-        self._end_point = end_point
-        self._root_ca_path = root_ca_path
-        self._certificate_path = certificate_path
-        self._private_key_path = private_key_path
-        self._group_ca_path = group_ca_path
-        self._cores = None
-        self._discovered = False
-
-    @property
-    def discovered(self):
-        return self._discovered
-
-    @property
-    def cores(self):
-        return self._cores
-
-    @property
-    def core(self):
-        if self._cores is None:
-            return None
-        if len(self._cores) > 0:
-            return self._cores[0]
-        else:
-            return None
-
-    def discover(self, thing):
-        backoff_core = ProgressiveBackOffCore()
-        dip = DiscoveryInfoProvider()
-        dip.configureEndpoint(self._end_point)
-        dip.configureCredentials(self._root_ca_path, self._certificate_path, self._private_key_path)
-        dip.configureTimeout(10)  # 10 sec
-        retry_count = MAX_DISCOVERY_RETRIES
-        while retry_count != 0:
-            logging.info("discovering")
-            try:
-                di = dip.discover(thing)
-                ca_list = di.getAllCas()
-                self._cores = di.getAllCores()
-                # We only pick the first ca and core info
-                group_id, ca = ca_list[0]
-                logging.info("discovered {} from gg group: {}".format(self.core.coreThingArn, group_id))
-                if not os.path.isfile(self._group_ca_path):
-                    group_ca_file = open(self._group_ca_path, "w")
-                    group_ca_file.write(ca)
-                    group_ca_file.close()
-                self._discovered = True
-                break
-            except DiscoveryInvalidRequestException as e:
-                logging.error("discovery invalid request: {}".format(e.message))
-                break
-            except BaseException as e:
-                retry_count -= 1
-                logging.debug("discovery backoff...")
-                backoff_core.backOff()
-        if not self._discovered:
-            raise RuntimeError("discovery failed")
-
-
 class Publisher:
-    def __init__(self, end_point, root_ca_path, certificate_path, private_key_path, thing_name=None, group_ca_path=None,
-                 mqtt_host=None, mqtt_port=8883):
+    def __init__(self, end_point, root_ca_path, certificate_path, private_key_path):
         self._end_point = end_point
         self._root_ca_path = root_ca_path
         self._certificate_path = certificate_path
         self._private_key_path = private_key_path
-        self._thing_name = thing_name
-        self._group_ca_path = group_ca_path
         self._connected = False
         self._client = AWSIoTMQTTClient(None)
-        self._mqtt_host = mqtt_host
-        self._mqtt_port = mqtt_port
-        self._discoverer = Discoverer(self._end_point, self._root_ca_path, self._certificate_path,
-                                      self._private_key_path, self._group_ca_path)
 
     @property
     def connected(self):
         return self._connected
 
-    @property
-    def mqtt_host(self):
-        return self._mqtt_host
-
-    @property
-    def mqtt_port(self):
-        return self._mqtt_port
-
     def connect(self):
         # use the presence of group_ca_path to determine if local or cloud
         logging.debug("publisher connect {}".format(self._end_point))
-        if self._group_ca_path is None:
-            self._client.configureCredentials(self._root_ca_path, self._private_key_path, self._certificate_path)
-            self._client.configureEndpoint(self._end_point, 8883)
-        else:
-            if self._mqtt_host is None:
-                self._discoverer.discover(self._thing_name)
-                # Iterate through all connection options for the greengrass core and use the first successful one
-                for connectivityInfo in self._discoverer.core.connectivityInfoList:
-                    current_host = connectivityInfo.host
-                    current_port = connectivityInfo.port
-                    self._client.configureEndpoint(current_host, current_port)
-                    if self._client.connect():
-                        self._mqtt_host = current_host
-                        self._mqtt_port = current_port
-                        break
-                if not self._discoverer.discovered:
-                    raise RuntimeError("No hosts discovered")
-            self._client.configureCredentials(self._group_ca_path, self._private_key_path, self._certificate_path)
-            self._client.configureEndpoint(self._mqtt_host, self.mqtt_port)
+        self._client.configureCredentials(self._root_ca_path, self._private_key_path, self._certificate_path)
+        self._client.configureEndpoint(self._end_point, 8883)
         self._client.connect()
         self._connected = True
 
@@ -303,55 +210,23 @@ class Publisher:
 
 
 class Subscriber:
-    def __init__(self, end_point, root_ca_path, certificate_path, private_key_path,
-                 thing_name=None, group_ca_path=None, mqtt_host=None, mqtt_port=8883):
+    def __init__(self, end_point, root_ca_path, certificate_path, private_key_path):
         self._end_point = end_point
         self._root_ca_path = root_ca_path
         self._certificate_path = certificate_path
         self._private_key_path = private_key_path
-        self._thing_name = thing_name
-        self._group_ca_path = group_ca_path
         self._connected = False
         self._client = AWSIoTMQTTClient(None)
-        self._mqtt_host = mqtt_host
-        self._mqtt_port = mqtt_port
-        self._discoverer = Discoverer(self._end_point, self._root_ca_path, self._certificate_path,
-                                      self._private_key_path, self._group_ca_path)
 
     @property
     def connected(self):
         return self._connected
 
-    @property
-    def mqtt_host(self):
-        return self._mqtt_host
-
-    @property
-    def mqtt_port(self):
-        return self._mqtt_port
-
     def connect(self):
         # use the presence of group_ca_path to determine if local or cloud
         logging.debug("subscriber connect {}".format(self._end_point))
-        if self._group_ca_path is None:
-            self._client.configureCredentials(self._root_ca_path, self._private_key_path, self._certificate_path)
-            self._client.configureEndpoint(self._end_point, 8883)
-        else:
-            if self._mqtt_host is None:
-                self._discoverer.discover(self._thing_name)
-                # Iterate through all connection options for the greengrass core and use the first successful one
-                for connectivityInfo in self._discoverer.core.connectivityInfoList:
-                    current_host = connectivityInfo.host
-                    current_port = connectivityInfo.port
-                    self._client.configureEndpoint(current_host, current_port)
-                    if self._client.connect():
-                        self._mqtt_host = current_host
-                        self._mqtt_port = current_port
-                        break
-                if not self._discoverer.discovered:
-                    raise RuntimeError("No hosts discovered")
-            self._client.configureCredentials(self._group_ca_path, self._private_key_path, self._certificate_path)
-            self._client.configureEndpoint(self._mqtt_host, self.mqtt_port)
+        self._client.configureCredentials(self._root_ca_path, self._private_key_path, self._certificate_path)
+        self._client.configureEndpoint(self._end_point, 8883)
         self._client.connect()
         self._connected = True
 

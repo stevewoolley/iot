@@ -15,11 +15,10 @@ def pub(temp, humid):
     if args.topic is not None and len(args.topic) > 0:
         for t in args.topic:
             publisher.publish(t,
-                          json.dumps({"temperature": temp, "humidity": humid,
-                                      awsiot.MESSAGE: "temperature: {} humidity: {}".format(temp, humid)}))
-    if args.thing is not None:
-        publisher.publish(awsiot.iot_thing_topic(args.thing),
-                          awsiot.iot_payload(awsiot.REPORTED, {'temperature': temp, 'humidity': humid}))
+                              json.dumps({"temperature": temp, "humidity": humid,
+                                          awsiot.MESSAGE: "temperature: {} humidity: {}".format(temp, humid)}))
+    publisher.publish(awsiot.iot_thing_topic(args.thing),
+                      awsiot.iot_payload(awsiot.REPORTED, {'temperature': temp, 'humidity': humid}))
 
 
 if __name__ == "__main__":
@@ -30,7 +29,7 @@ if __name__ == "__main__":
 
     logging.basicConfig(filename=awsiot.LOG_FILE, level=args.log_level, format=awsiot.LOG_FORMAT)
 
-    publisher = awsiot.Publisher(args.endpoint, args.rootCA, args.cert, args.key, args.thing, args.groupCA)
+    publisher = awsiot.Publisher(args.endpoint, args.rootCA, args.cert, args.key)
 
     humidity, temperature = Adafruit_DHT.read_retry(args.dht_type, args.pin)
     if humidity is not None and temperature is not None:
