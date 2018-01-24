@@ -16,7 +16,8 @@ def pub(topic, value):
     if topic is not None and len(topic) > 0:
         for t in topic:
             publisher.publish(t,
-                              json.dumps({args.shadow_var: value, awsiot.MESSAGE: "{} {}".format(args.shadow_var, value)}))
+                              json.dumps(
+                                  {args.shadow_var: value, awsiot.MESSAGE: "{} {}".format(args.shadow_var, value)}))
     publisher.publish(awsiot.iot_thing_topic(args.thing), awsiot.iot_payload(awsiot.REPORTED, {args.shadow_var: value}))
 
 
@@ -31,7 +32,6 @@ def no_motion():
         pub(args.low_topic, args.low_value)
     else:
         pub(args.topic, args.low_value)
-
 
 
 if __name__ == "__main__":
