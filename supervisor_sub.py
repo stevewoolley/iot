@@ -14,7 +14,7 @@ def callback(client, user_data, message):
         msg = json.loads(message.payload)
     except ValueError:
         msg = None
-    logging.debug("received {} {}".format(message.topic, msg))
+    logging.info("received {} {}".format(message.topic, msg))
     # for x in args.topic:
     #     if message.topic.startswith(x):
     #         commands = filter(None, message.topic.replace(x, '').split('/'))
