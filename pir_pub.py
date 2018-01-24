@@ -29,6 +29,9 @@ def no_motion():
     logging.info("{} {} {}".format(args.shadow_var, args.pin, args.low_value))
     if args.low_topic:
         pub(args.low_topic, args.low_value)
+    else:
+        pub(args.topic, args.low_value)
+
 
 
 if __name__ == "__main__":
