@@ -1,16 +1,10 @@
 #!/usr/bin/env python
 
-import json
 import awsiot
 import logging
 import sys
 import time
-
-try:
-    from gpiozero import DigitalOutputDevice
-except ImportError:
-    logging.error("Unable to import gpiozero")
-    pass
+from gpiozero import DigitalOutputDevice
 
 
 def device(cmd):
@@ -25,38 +19,20 @@ def device(cmd):
 
 
 def callback(client, user_data, message):
-    try:
-        msg = json.loads(message.payload)
-    except ValueError:
-        msg = None
-    logging.debug("received {} {}".format(message.topic, msg))
-    device(args.default)
-
-
-def level_callback(client, user_data, message):
-    try:
-        msg = json.loads(message.payload)
-    except ValueError:
-        msg = None
-    logging.debug("received {} {}".format(message.topic, msg))
-    for x in args.topic:
-        if message.topic.startswith(x):
-            commands = filter(None, message.topic.replace(x, '').split('/'))
-            if len(commands) > 0:
-                cmd = commands.pop(0)
-                if cmd in awsiot.TOPIC_STATUS_ON:
-                    device(-1)
-                elif cmd in awsiot.TOPIC_STATUS_OFF:
-                    device(0)
-                elif cmd in awsiot.TOPIC_STATUS_PULSE:
-                    if len(commands) > 0:
-                        cmd = commands.pop(0)
-                        if awsiot.int_val(cmd) is not None:
-                            device(awsiot.int_val(cmd))
-                    else:
-                        device(args.default)
-                else:
-                    logging.warning('Device command ignored: {}'.format(cmd))
+    logging.debug("received {} {}".format(message.topic, message))
+    for topic in args.topic:
+        cmd, arg = awsiot.topic_search(topic, message.topic)
+        if cmd in awsiot.TOPIC_STATUS_PULSE:
+            logging.debug("command: {}".format(cmd))
+            device(1)
+        elif cmd in awsiot.TOPIC_STATUS_ON:
+            logging.debug("command: {}".format(cmd))
+            device(-1)
+        elif cmd in awsiot.TOPIC_STATUS_OFF:
+            logging.debug("command: {}".format(cmd))
+            device(0)
+        else:
+            logging.warning('Unrecognized command: {}'.format(cmd))
 
 
 if __name__ == "__main__":
@@ -75,9 +51,7 @@ if __name__ == "__main__":
 
     if args.topic is not None and len(args.topic) > 0:
         for t in args.topic:
-            subscriber.subscribe(t, callback)
-            time.sleep(2)  # pause
-            subscriber.subscribe("{}/#".format(t), level_callback)
+            subscriber.subscribe('{}/#'.format(t.split('/').pop(0)), callback)
             time.sleep(2)  # pause
 
     # Loop forever
