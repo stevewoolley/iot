@@ -24,7 +24,7 @@ def callback(client, user_data, message):
         cmd, arg = awsiot.topic_search(topic, message.topic)
         if cmd in awsiot.TOPIC_STATUS_PULSE:
             logging.debug("command: {}".format(cmd))
-            device(arg)
+            device(int(arg))
         elif cmd in awsiot.TOPIC_STATUS_ON:
             logging.debug("command: {}".format(cmd))
             device(-1)
