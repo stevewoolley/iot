@@ -15,25 +15,34 @@ def callback(client, user_data, message):
         cmd, arg = awsiot.topic_search(topic, message.topic)
         if cmd == 'getAllProcessInfo':
             logging.debug("command: {}".format(cmd))
-            results = proxy.supervisor.getAllProcessInfo()
-            logging.info("getAllProcessInfo {}".format(results))
-            if args.thing:
-                supervised = []
-                for s in results:
-                    supervised.append('{} ({})'.format(s['name'], s['statename']))
-                publisher = awsiot.Publisher(args.endpoint, args.rootCA, args.cert, args.key)
-                publisher.publish(awsiot.iot_thing_topic(args.thing),
-                                  awsiot.iot_payload(awsiot.REPORTED, {'supervised': ', '.join(supervised)}))
+            try:
+                results = proxy.supervisor.getAllProcessInfo()
+                logging.info("getAllProcessInfo {}".format(results))
+                if args.thing:
+                    supervised = []
+                    for s in results:
+                        supervised.append('{} ({})'.format(s['name'], s['statename']))
+                    publisher = awsiot.Publisher(args.endpoint, args.rootCA, args.cert, args.key)
+                    publisher.publish(awsiot.iot_thing_topic(args.thing),
+                                      awsiot.iot_payload(awsiot.REPORTED, {'supervised': ', '.join(supervised)}))
+            except Exception as err:
+                logging.error("supervisor getAllProcessInfo failed: {}".format(err))
         elif cmd == 'startProcess':
             logging.debug("command: {}".format(cmd))
             if arg:
-                proxy.supervisor.startProcess(arg)
+                try:
+                    proxy.supervisor.startProcess(arg)
+                except Exception as err:
+                    logging.error("supervisor startProcess {} failed {}".format(arg, err))
             else:
                 logging.error('No argument: {}'.format(cmd, arg))
         elif cmd == 'stopProcess':
             logging.debug("command: {}".format(cmd))
             if arg:
-                proxy.supervisor.stopProcess(arg)
+                try:
+                    proxy.supervisor.stopProcess(arg)
+                except Exception as err:
+                    logging.error("supervisor stopProcess {} failed {}".format(arg, err))
             else:
                 logging.error('No argument: {}'.format(cmd, arg))
         else:
