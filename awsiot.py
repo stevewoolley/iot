@@ -39,14 +39,12 @@ def topic_search(topic, input):
             arg = None
             if len(temp) > 0:
                 arg = temp.pop(0)
-            commands = None
             if command:
+                sup = command
                 if arg:
-                    commands = tokenizer(topic, '/', '{}/{}'.format(command, arg))
-                else:
-                    commands = tokenizer(topic, '/', command)
-            if input in commands:
-                return command, arg
+                    sup = '{}/{}'.format(command, arg)
+                if input in tokenizer(topic, '/', sup):
+                    return command, arg
             return None, None
 
 
