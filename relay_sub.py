@@ -1,16 +1,10 @@
 #!/usr/bin/env python
 
-import json
 import awsiot
 import logging
 import sys
 import time
-
-try:
-    from gpiozero import OutputDevice
-except ImportError:
-    logging.error("Unable to import gpiozero")
-    pass
+from gpiozero import OutputDevice
 
 
 def device(cmd):
@@ -27,29 +21,20 @@ def device(cmd):
 
 
 def callback(client, user_data, message):
-    try:
-        msg = json.loads(message.payload)
-    except ValueError:
-        msg = None
-    logging.debug("received {} {}".format(message.topic, msg))
-    device(args.default)
-
-
-def level_callback(client, user_data, message):
-    try:
-        msg = json.loads(message.payload)
-    except ValueError:
-        msg = None
-    level = message.topic.replace(args.topic, '')
-    logging.debug("received {} {}".format(message.topic, msg))
-    if level in awsiot.TOPIC_STATUS_ON:
-        device(-1)
-    elif level in awsiot.TOPIC_STATUS_OFF:
-        device(0)
-    elif level in awsiot.TOPIC_STATUS_PULSE:
-        device(args.default)
-    else:
-        logging.warning('Device command ignored: {}'.format(level))
+    logging.debug("received {} {}".format(message.topic, message))
+    for topic in args.topic:
+        cmd, arg = awsiot.topic_search(topic, message.topic)
+        if cmd in awsiot.TOPIC_STATUS_PULSE:
+            logging.debug("command: {}".format(cmd))
+            device(1)
+        elif cmd in awsiot.TOPIC_STATUS_ON:
+            logging.debug("command: {}".format(cmd))
+            device(-1)
+        elif cmd in awsiot.TOPIC_STATUS_OFF:
+            logging.debug("command: {}".format(cmd))
+            device(0)
+        else:
+            logging.warning('Unrecognized command: {}'.format(cmd))
 
 
 if __name__ == "__main__":
@@ -67,21 +52,17 @@ if __name__ == "__main__":
                              "in when configured for output (warning: this can be on). " +
                              "If True, the device will be switched on initially.",
                         type=bool, default=False)
-    parser.add_argument("-z", "--default", help="Pattern 0=off, 1=on, 1=pulse", type=int, default=1)
     args = parser.parse_args()
 
     logging.basicConfig(filename=awsiot.LOG_FILE, level=args.log_level, format=awsiot.LOG_FORMAT)
 
     subscriber = awsiot.Subscriber(args.endpoint, args.rootCA, args.cert, args.key)
 
-    if args.pin is not None:
-        output = OutputDevice(args.pin, args.active_high, args.initial_value)
+    output = OutputDevice(args.pin, args.active_high, args.initial_value)
 
     if args.topic is not None and len(args.topic) > 0:
         for t in args.topic:
-            subscriber.subscribe(t, callback)
-            time.sleep(2)  # pause
-            subscriber.subscribe("{}/+".format(t), level_callback)
+            subscriber.subscribe('{}/#'.format(t.split('/').pop(0)), callback)
             time.sleep(2)  # pause
 
     # Loop forever

@@ -32,7 +32,6 @@ def topic_search(topic, input):
     topics = tokenizer(topic, '/')
     for i in topics:
         if input.startswith(i):
-            print input
             temp = filter(None, input.replace(i, '').split('/'))
             command = None
             if len(temp) > 0:

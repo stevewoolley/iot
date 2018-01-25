@@ -71,8 +71,7 @@ if __name__ == "__main__":
 
     subscriber = awsiot.Subscriber(args.endpoint, args.rootCA, args.cert, args.key)
 
-    if args.pin is not None:
-        output = DigitalOutputDevice(args.pin)
+    output = DigitalOutputDevice(args.pin)
 
     if args.topic is not None and len(args.topic) > 0:
         for t in args.topic:
