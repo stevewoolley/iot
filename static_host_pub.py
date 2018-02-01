@@ -54,3 +54,4 @@ if __name__ == "__main__":
         properties["{}IpAddress".format(iface)] = get_ip(iface)
 
     publisher.publish(awsiot.iot_thing_topic(args.thing), awsiot.iot_payload(awsiot.REPORTED, properties))
+    publisher.disconnect()

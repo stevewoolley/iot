@@ -240,6 +240,11 @@ class Publisher:
             self.connect()
         self._client.publish(topic, payload, qos)
 
+    def disconnect(self):
+        self._connected = False
+        return self._client.disconnect()
+
+
 
 class Subscriber:
     def __init__(self, end_point, root_ca_path, certificate_path, private_key_path):
