@@ -40,4 +40,4 @@ if __name__ == "__main__":
     properties["cpuLoad"] = psutil.cpu_percent(interval=3)
 
     publisher.publish(awsiot.iot_thing_topic(args.thing), awsiot.iot_payload(awsiot.REPORTED, properties))
-
+    publisher.disconnect()

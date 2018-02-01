@@ -37,3 +37,4 @@ if __name__ == "__main__":
         pub(temperature, humidity)
     else:
         logging.warn("Can't read temperature/humidity from DHT {}".format(args.pin))
+    publisher.disconnect()
