@@ -81,7 +81,7 @@ if __name__ == "__main__":
                 if (abs(last_distance - distance) / last_distance) * 100.0 > args.pct_change:
                     logging.info("distance: {}".format(distance))
                     pub(distance)
-            last_distance = distance
+                    last_distance = distance
             time.sleep(args.sleep_time)  # sleep needed because CPU race
     except (KeyboardInterrupt, SystemExit):
         GPIO.cleanup()
