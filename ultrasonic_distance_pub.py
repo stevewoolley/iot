@@ -5,6 +5,7 @@ import awsiot
 import logging
 import RPi.GPIO as GPIO
 import time
+import sys
 
 
 def pub(dist):
@@ -48,6 +49,8 @@ if __name__ == "__main__":
     parser = awsiot.iot_arg_parser()
     parser.add_argument("--trigger_pin", help="trigger gpio pin (using BCM numbering)", type=int, required=True)
     parser.add_argument("--echo_pin", help="echo gpio pin (using BCM numbering)", type=int, required=True)
+    parser.add_argument("--pct_change", help="change must be greater than this value to signal", type=int, default=10)
+
     args = parser.parse_args()
 
     # GPIO Mode (BOARD / BCM)
@@ -64,7 +67,17 @@ if __name__ == "__main__":
     logging.basicConfig(filename=awsiot.LOG_FILE, level=args.log_level, format=awsiot.LOG_FORMAT)
 
     publisher = awsiot.Publisher(args.endpoint, args.rootCA, args.cert, args.key)
-    distance = get_distance()
-    if 1 < distance < 250:
-        pub(distance)
-    GPIO.cleanup()
+
+    # Loop forever
+    try:
+        last_distance = 0
+        while True:
+            distance = get_distance()
+            if 2 <= distance <= 450:
+                if (float(abs(last_distance - distance)) / float(last_distance)) * 100.0 > args.pct_change:
+                    logging.info("distance: {}".format(distance))
+                    pub(distance)
+            time.sleep(0.5)  # sleep needed because CPU race
+    except (KeyboardInterrupt, SystemExit):
+        GPIO.cleanup()
+        sys.exit()
