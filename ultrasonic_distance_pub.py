@@ -49,7 +49,11 @@ if __name__ == "__main__":
     parser = awsiot.iot_arg_parser()
     parser.add_argument("--trigger_pin", help="trigger gpio pin (using BCM numbering)", type=int, required=True)
     parser.add_argument("--echo_pin", help="echo gpio pin (using BCM numbering)", type=int, required=True)
-    parser.add_argument("--pct_change", help="change must be greater than this value to signal", type=int, default=25)
+    parser.add_argument("--pct_change", help="change must be greater than this value to signal", type=float, default=25.0)
+    parser.add_argument("--max_value", help="max distance", type=float, default=100.0)
+    parser.add_argument("--min_value", help="min distance", type=float, default=2.0)
+    parser.add_argument("--sleep_time", help="time in seconds between measurements", type=float, default=0.5)
+
 
     args = parser.parse_args()
 
@@ -70,15 +74,15 @@ if __name__ == "__main__":
 
     # Loop forever
     try:
-        last_distance = 0
+        last_distance = 1.0
         while True:
             distance = get_distance()
-            if 2 <= distance <= 450:
-                if last_distance == 0 or (float(abs(last_distance - distance)) / float(last_distance)) * 100.0 > args.pct_change:
+            if args.min_value <= distance <= args.max_value:
+                if (abs(last_distance - distance) / last_distance) * 100.0 > args.pct_change:
                     logging.info("distance: {}".format(distance))
                     pub(distance)
             last_distance = distance
-            time.sleep(0.5)  # sleep needed because CPU race
+            time.sleep(args.sleep_time)  # sleep needed because CPU race
     except (KeyboardInterrupt, SystemExit):
         GPIO.cleanup()
         sys.exit()
