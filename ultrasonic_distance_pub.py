@@ -3,18 +3,17 @@
 import json
 import awsiot
 import logging
-from signal import pause
 import RPi.GPIO as GPIO
 import time
 
 
-def pub(topic, value):
-    if topic is not None and len(topic) > 0:
-        for t in topic:
+def pub(dist):
+    if args.topic is not None and len(args.topic) > 0:
+        for t in args.topic:
             publisher.publish(t,
-                              json.dumps(
-                                  {args.shadow_var: value, awsiot.MESSAGE: "{} {}".format(args.shadow_var, value)}))
-    publisher.publish(awsiot.iot_thing_topic(args.thing), awsiot.iot_payload(awsiot.REPORTED, {args.shadow_var: value}))
+                              json.dumps({"distance": dist, awsiot.MESSAGE: "distance: {}".format(dist)}))
+    publisher.publish(awsiot.iot_thing_topic(args.thing),
+                      awsiot.iot_payload(awsiot.REPORTED, {'distance': dist}))
 
 
 def get_distance():
@@ -65,7 +64,7 @@ if __name__ == "__main__":
     logging.basicConfig(filename=awsiot.LOG_FILE, level=args.log_level, format=awsiot.LOG_FORMAT)
 
     publisher = awsiot.Publisher(args.endpoint, args.rootCA, args.cert, args.key)
-    properties = {}
-    properties["distance"] = get_distance()
-    publisher.publish(awsiot.iot_thing_topic(args.thing), awsiot.iot_payload(awsiot.REPORTED, properties))
+    distance = get_distance()
+    if 1 < distance < 250:
+        pub(distance)
     GPIO.cleanup()
