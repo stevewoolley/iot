@@ -74,9 +74,10 @@ if __name__ == "__main__":
         while True:
             distance = get_distance()
             if 2 <= distance <= 450:
-                if (float(abs(last_distance - distance)) / float(last_distance)) * 100.0 > args.pct_change:
+                if last_distance == 0 or (float(abs(last_distance - distance)) / float(last_distance)) * 100.0 > args.pct_change:
                     logging.info("distance: {}".format(distance))
                     pub(distance)
+            last_distance = distance
             time.sleep(0.5)  # sleep needed because CPU race
     except (KeyboardInterrupt, SystemExit):
         GPIO.cleanup()
