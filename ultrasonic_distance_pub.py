@@ -49,7 +49,7 @@ if __name__ == "__main__":
     parser = awsiot.iot_arg_parser()
     parser.add_argument("--trigger_pin", help="trigger gpio pin (using BCM numbering)", type=int, required=True)
     parser.add_argument("--echo_pin", help="echo gpio pin (using BCM numbering)", type=int, required=True)
-    parser.add_argument("--pct_change", help="change must be greater than this value to signal", type=int, default=10)
+    parser.add_argument("--pct_change", help="change must be greater than this value to signal", type=int, default=25)
 
     args = parser.parse_args()
 
