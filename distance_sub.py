@@ -21,6 +21,7 @@ def get_distance(trigger, echo, iterations=5, time_between_iterations=0.2):
         while GPIO.input(echo) == 1:
             stop_time = time.time()
         time_lapsed = stop_time - start_time
+        logging.info('measured distance {} cm'.format(time_lapsed * 34300) / 2)
         results.append((time_lapsed * 34300) / 2)
         time.sleep(time_between_iterations)
     return np.mean(results)
