@@ -218,10 +218,10 @@ class MQTT:
         self._client = AWSIoTMQTTClient(None)
         self._client.configureCredentials(self._root_ca_path, self._private_key_path, self._certificate_path)
         self._client.configureEndpoint(self._end_point, 8883)
-        self._client.configureOfflinePublishQueueing(-1)  # Infinite offline Publish queueing
-        self._client.configureDrainingFrequency(2)  # Draining: 2 Hz
-        self._client.configureConnectDisconnectTimeout(10)  # 10 sec
-        self._client.configureMQTTOperationTimeout(5)  # 5 sec
+        # self._client.configureOfflinePublishQueueing(-1)  # Infinite offline Publish queueing
+        # self._client.configureDrainingFrequency(2)  # Draining: 2 Hz
+        # self._client.configureConnectDisconnectTimeout(10)  # 10 sec
+        # self._client.configureMQTTOperationTimeout(5)  # 5 sec
         self._connected = False
 
     @property
