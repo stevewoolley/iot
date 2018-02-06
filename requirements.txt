@@ -3,3 +3,4 @@ AWSIoTPythonSDK
 argparse
 psutil
 Pillow
+numpy
