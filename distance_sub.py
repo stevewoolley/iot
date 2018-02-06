@@ -25,7 +25,7 @@ def get_distance(trigger, echo, iterations=5, time_between_iterations=0.2):
         logging.info('measured distance {} cm'.format(val))
         results.append(val)
         time.sleep(time_between_iterations)
-    return np.mean(results)
+    return np.median(results)
 
 
 def callback(client, user_data, message):
