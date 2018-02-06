@@ -8,7 +8,7 @@ import RPi.GPIO as GPIO
 import numpy as np
 
 
-def get_distance(trigger, echo, iterations=5, time_between_iterations=0.2):
+def get_distance(trigger, echo, iterations=5, time_between_iterations=1):
     results = []
     for i in range(iterations):
         GPIO.output(trigger, True)
@@ -35,7 +35,7 @@ def callback(client, user_data, message):
         logging.info('calculated distance {} cm'.format(distance))
         if args.min_value <= distance <= args.max_value:
             if awsiot.topic_search(topic, message.topic):
-                publisher.publish(awsiot.iot_thing_topic(args.thing),
+                mqtt.publish(awsiot.iot_thing_topic(args.thing),
                                   awsiot.iot_payload(awsiot.REPORTED, {'distance': distance}))
             else:
                 logging.warning('Unrecognized command')
@@ -61,12 +61,11 @@ if __name__ == "__main__":
     GPIO.setup(args.echo_pin, GPIO.IN)
 
     # initialize iot
-    subscriber = awsiot.Subscriber(args.endpoint, args.rootCA, args.cert, args.key)
-    publisher = awsiot.Publisher(args.endpoint, args.rootCA, args.cert, args.key)
+    mqtt = awsiot.MQTT(args.endpoint, args.rootCA, args.cert, args.key)
 
     if args.topic is not None and len(args.topic) > 0:
         for t in args.topic:
-            subscriber.subscribe('{}/#'.format(t.split('/').pop(0)), callback)
+            mqtt.subscribe('{}/#'.format(t.split('/').pop(0)), callback)
             time.sleep(2)  # pause
 
     # Loop forever

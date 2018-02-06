@@ -8,9 +8,6 @@ import boto3
 import platform
 from boto3.dynamodb.conditions import Key
 from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
-from AWSIoTPythonSDK.core.greengrass.discovery.providers import DiscoveryInfoProvider
-from AWSIoTPythonSDK.core.protocol.connection.cores import ProgressiveBackOffCore
-from AWSIoTPythonSDK.exception.AWSIoTExceptions import DiscoveryInvalidRequestException
 
 MAX_DISCOVERY_RETRIES = 10
 LOG_FILE = '/var/log/iot.log'
@@ -212,14 +209,20 @@ def iot_arg_parser():
     return parser
 
 
-class Publisher:
+class MQTT:
     def __init__(self, end_point, root_ca_path, certificate_path, private_key_path):
         self._end_point = end_point
         self._root_ca_path = root_ca_path
         self._certificate_path = certificate_path
         self._private_key_path = private_key_path
-        self._connected = False
         self._client = AWSIoTMQTTClient(None)
+        self._client.configureCredentials(self._root_ca_path, self._private_key_path, self._certificate_path)
+        self._client.configureEndpoint(self._end_point, 8883)
+        self._client.configureOfflinePublishQueueing(-1)  # Infinite offline Publish queueing
+        self._client.configureDrainingFrequency(2)  # Draining: 2 Hz
+        self._client.configureConnectDisconnectTimeout(10)  # 10 sec
+        self._client.configureMQTTOperationTimeout(5)  # 5 sec
+        self._connected = False
 
     @property
     def connected(self):
@@ -227,48 +230,21 @@ class Publisher:
 
     def connect(self):
         # use the presence of group_ca_path to determine if local or cloud
-        logging.debug("publisher connect {}".format(self._end_point))
-        self._client.configureCredentials(self._root_ca_path, self._private_key_path, self._certificate_path)
-        self._client.configureEndpoint(self._end_point, 8883)
-        self._client.connect()
-        self._connected = True
+        if not self._connected:
+            logging.debug("mqtt connect {}".format(self._end_point))
+            self._client.connect()
+            self._connected = True
 
     def publish(self, topic, payload, qos=1):
-        logging.info("publish {} {}".format(topic, payload))
-        # payload needs to be in json
-        if not self.connected:
-            self.connect()
+        logging.info("mqtt publish {} {}".format(topic, payload))
+        self.connect()
         self._client.publish(topic, payload, qos)
+
+    def subscribe(self, topic, callback, qos=1):
+        logging.info("mqtt subscribe {}".format(topic))
+        self.connect()
+        self._client.subscribe(topic, qos, callback)
 
     def disconnect(self):
         self._connected = False
         return self._client.disconnect()
-
-
-
-class Subscriber:
-    def __init__(self, end_point, root_ca_path, certificate_path, private_key_path):
-        self._end_point = end_point
-        self._root_ca_path = root_ca_path
-        self._certificate_path = certificate_path
-        self._private_key_path = private_key_path
-        self._connected = False
-        self._client = AWSIoTMQTTClient(None)
-
-    @property
-    def connected(self):
-        return self._connected
-
-    def connect(self):
-        # use the presence of group_ca_path to determine if local or cloud
-        logging.debug("subscriber connect {}".format(self._end_point))
-        self._client.configureCredentials(self._root_ca_path, self._private_key_path, self._certificate_path)
-        self._client.configureEndpoint(self._end_point, 8883)
-        self._client.connect()
-        self._connected = True
-
-    def subscribe(self, topic, callback, qos=1):
-        logging.info("subscribe {}".format(topic))
-        if not self.connected:
-            self.connect()
-        self._client.subscribe(topic, qos, callback)
