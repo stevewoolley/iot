@@ -72,4 +72,5 @@ if __name__ == "__main__":
         while True:
             time.sleep(0.5)  # sleep needed because CPU race
     except (KeyboardInterrupt, SystemExit):
+        GPIO.cleanup()
         sys.exit()
