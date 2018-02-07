@@ -224,6 +224,7 @@ class MQTT:
         self._client.configureConnectDisconnectTimeout(10)  # 10 sec
         self._client.configureMQTTOperationTimeout(5)  # 5 sec
         self._client.onOnline = self.online_callback
+        self._client.onOffline = self.offline_callback
         self._connected = False
 
     def online_callback(self):
@@ -233,6 +234,9 @@ class MQTT:
     def offline_callback(self):
         logging.info("mqtt offline")
         self._connected = False
+
+    def publish_callback(self):
+        logging.info("mqtt published")
 
     @property
     def connected(self):
@@ -248,7 +252,7 @@ class MQTT:
         logging.info("mqtt publish {} {}".format(topic, payload))
         self.connect()
         try:
-            self._client.publish(topic, payload, qos)
+            self._client.publishAsync(topic, payload, qos, ackCallback=self.publish_callback)
         except Exception as e:
             logging.error("mqtt publish {} {} error: {}".format(topic, payload, e.message))
 
