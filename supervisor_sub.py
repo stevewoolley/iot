@@ -22,8 +22,8 @@ def callback(client, user_data, message):
                     supervised = []
                     for s in results:
                         supervised.append('{} ({})'.format(s['name'], s['statename']))
-                        mqtt.publish(awsiot.iot_thing_topic(args.thing),
-                                      awsiot.iot_payload(awsiot.REPORTED, {'supervised': ', '.join(supervised)}))
+                    mqtt.publish(awsiot.iot_thing_topic(args.thing),
+                                 awsiot.iot_payload(awsiot.REPORTED, {'supervised': ', '.join(supervised)}))
             except Exception as err:
                 logging.error("supervisor getAllProcessInfo failed: {}".format(err))
         elif cmd == 'startProcess':
