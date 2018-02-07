@@ -243,17 +243,22 @@ class MQTT:
         if not self._connected:
             logging.debug("mqtt connect {}".format(self._end_point))
             self._client.connect()
-            time.sleep(2)
 
     def publish(self, topic, payload, qos=1):
         logging.info("mqtt publish {} {}".format(topic, payload))
         self.connect()
-        self._client.publish(topic, payload, qos)
+        try:
+            self._client.publish(topic, payload, qos)
+        except Exception as e:
+            logging.error("mqtt publish {} {} error: {}".format(topic, payload, e.message))
 
     def subscribe(self, topic, callback, qos=1):
         logging.info("mqtt subscribe {}".format(topic))
         self.connect()
-        self._client.subscribe(topic, qos, callback)
+        try:
+            self._client.subscribe(topic, qos, callback)
+        except Exception as e:
+            logging.error("mqtt subscribe {} error: {}".format(topic, e.message))
 
     def disconnect(self):
         self._connected = False
