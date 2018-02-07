@@ -28,7 +28,7 @@ if __name__ == "__main__":
 
     logging.basicConfig(filename=awsiot.LOG_FILE, level=args.log_level, format=awsiot.LOG_FORMAT)
 
-    publisher = awsiot.Publisher(args.endpoint, args.rootCA, args.cert, args.key)
+    publisher = awsiot.MQTT(args.endpoint, args.rootCA, args.cert, args.key)
 
     properties = {}
     mem = psutil.virtual_memory()
@@ -40,4 +40,3 @@ if __name__ == "__main__":
     properties["cpuLoad"] = psutil.cpu_percent(interval=3)
 
     publisher.publish(awsiot.iot_thing_topic(args.thing), awsiot.iot_payload(awsiot.REPORTED, properties))
-    publisher.disconnect()

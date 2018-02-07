@@ -29,7 +29,7 @@ if __name__ == "__main__":
 
     logging.basicConfig(filename=awsiot.LOG_FILE, level=args.log_level, format=awsiot.LOG_FORMAT)
 
-    publisher = awsiot.Publisher(args.endpoint, args.rootCA, args.cert, args.key)
+    publisher = awsiot.MQTT(args.endpoint, args.rootCA, args.cert, args.key)
 
     humidity, temperature = Adafruit_DHT.read_retry(args.dht_type, args.pin)
     if humidity is not None and temperature is not None:

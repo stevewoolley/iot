@@ -22,8 +22,7 @@ def callback(client, user_data, message):
                     supervised = []
                     for s in results:
                         supervised.append('{} ({})'.format(s['name'], s['statename']))
-                    publisher = awsiot.Publisher(args.endpoint, args.rootCA, args.cert, args.key)
-                    publisher.publish(awsiot.iot_thing_topic(args.thing),
+                        mqtt.publish(awsiot.iot_thing_topic(args.thing),
                                       awsiot.iot_payload(awsiot.REPORTED, {'supervised': ', '.join(supervised)}))
             except Exception as err:
                 logging.error("supervisor getAllProcessInfo failed: {}".format(err))
@@ -56,7 +55,7 @@ if __name__ == "__main__":
 
     logging.basicConfig(filename=awsiot.LOG_FILE, level=args.log_level, format=awsiot.LOG_FORMAT)
 
-    subscriber = awsiot.Subscriber(args.endpoint, args.rootCA, args.cert, args.key)
+    mqtt = awsiot.MQTT(args.endpoint, args.rootCA, args.cert, args.key)
 
     proxy = xmlrpclib.ServerProxy(
         'http://127.0.0.1', transport=supervisor.xmlrpc.SupervisorTransport(
@@ -64,7 +63,7 @@ if __name__ == "__main__":
 
     if args.topic is not None and len(args.topic) > 0:
         for t in args.topic:
-            subscriber.subscribe('{}/#'.format(t.split('/').pop(0)), callback)
+            mqtt.subscribe('{}/#'.format(t.split('/').pop(0)), callback)
             time.sleep(2)  # pause
 
     # Loop forever

@@ -87,7 +87,7 @@ if __name__ == "__main__":
 
     logging.basicConfig(filename=awsiot.LOG_FILE, level=args.log_level, format=awsiot.LOG_FORMAT)
 
-    subscriber = awsiot.Subscriber(args.endpoint, args.rootCA, args.cert, args.key,)
+    subscriber = awsiot.MQTT(args.endpoint, args.rootCA, args.cert, args.key,)
 
     camera = picamera.PiCamera()
     camera.resolution = (args.width, args.height)
