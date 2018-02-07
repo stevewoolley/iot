@@ -8,7 +8,7 @@ import RPi.GPIO as GPIO
 import numpy as np
 
 
-def get_distance(trigger, echo, iterations=5, time_between_iterations=1):
+def get_distance(trigger, echo, iterations=5, time_between_iterations=1, rounding_digits=2):
     results = []
     for i in range(iterations):
         GPIO.output(trigger, True)
@@ -25,23 +25,23 @@ def get_distance(trigger, echo, iterations=5, time_between_iterations=1):
         logging.info('measured distance {} cm'.format(val))
         results.append(val)
         time.sleep(time_between_iterations)
-    return np.median(results)
+    return round(np.median(results), rounding_digits)
 
 
 def callback(client, user_data, message):
     logging.debug("received {} {}".format(message.topic, message))
+    distance = get_distance(args.trigger_pin, args.echo_pin, args.iterations)
+    logging.info('median distance {} cm'.format(distance))
     for topic in args.topic:
-        distance = get_distance(args.trigger_pin, args.echo_pin, args.iterations)
-        logging.info('calculated distance {} cm'.format(distance))
         if args.min_value <= distance <= args.max_value:
             if awsiot.topic_search(topic, message.topic):
                 mqtt.publish(awsiot.iot_thing_topic(args.thing),
-                                  awsiot.iot_payload(awsiot.REPORTED, {'distance': distance}))
+                             awsiot.iot_payload(awsiot.REPORTED, {'distance': distance}))
             else:
                 logging.warning('Unrecognized command')
         else:
             logging.warning(
-                'calculated distance ({}) outside range {} - {}'.format(distance, args.min_value, args.max_value))
+                'calculated distance ({} cm) outside range {} - {}'.format(distance, args.min_value, args.max_value))
 
 
 if __name__ == "__main__":

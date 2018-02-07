@@ -6,6 +6,7 @@ import argparse
 import datetime
 import boto3
 import platform
+import time
 from boto3.dynamodb.conditions import Key
 from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
 
@@ -218,10 +219,19 @@ class MQTT:
         self._client = AWSIoTMQTTClient(None)
         self._client.configureCredentials(self._root_ca_path, self._private_key_path, self._certificate_path)
         self._client.configureEndpoint(self._end_point, 8883)
-        # self._client.configureOfflinePublishQueueing(-1)  # Infinite offline Publish queueing
-        # self._client.configureDrainingFrequency(2)  # Draining: 2 Hz
-        # self._client.configureConnectDisconnectTimeout(10)  # 10 sec
-        # self._client.configureMQTTOperationTimeout(5)  # 5 sec
+        self._client.configureOfflinePublishQueueing(-1)  # Infinite offline Publish queueing
+        self._client.configureDrainingFrequency(2)  # Draining: 2 Hz
+        self._client.configureConnectDisconnectTimeout(10)  # 10 sec
+        self._client.configureMQTTOperationTimeout(5)  # 5 sec
+        self._client.onOnline = self.online_callback
+        self._connected = False
+
+    def online_callback(self):
+        logging.info("mqtt online")
+        self._connected = True
+
+    def offline_callback(self):
+        logging.info("mqtt offline")
         self._connected = False
 
     @property
@@ -233,7 +243,7 @@ class MQTT:
         if not self._connected:
             logging.debug("mqtt connect {}".format(self._end_point))
             self._client.connect()
-            self._connected = True
+            time.sleep(2)
 
     def publish(self, topic, payload, qos=1):
         logging.info("mqtt publish {} {}".format(topic, payload))
