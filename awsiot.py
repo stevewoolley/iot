@@ -235,8 +235,8 @@ class MQTT:
         logging.info("mqtt offline")
         self._connected = False
 
-    def publish_callback(self):
-        logging.info("mqtt published")
+    def publish_callback(self, mid):
+        logging.info("mqtt published {}".format(mid))
 
     @property
     def connected(self):
