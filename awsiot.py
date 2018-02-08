@@ -6,7 +6,6 @@ import argparse
 import datetime
 import boto3
 import platform
-import time
 from boto3.dynamodb.conditions import Key
 from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
 
